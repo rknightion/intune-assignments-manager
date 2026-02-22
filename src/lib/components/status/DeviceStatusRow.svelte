@@ -4,7 +4,6 @@
 	interface Props {
 		deviceName: string;
 		userName: string;
-		status: string;
 		statusVariant: 'required' | 'available' | 'uninstall' | 'neutral';
 		statusLabel: string;
 		lastReported: string | null;
@@ -14,7 +13,6 @@
 	const {
 		deviceName,
 		userName,
-		status,
 		statusVariant,
 		statusLabel,
 		lastReported,
@@ -23,9 +21,7 @@
 
 	let expanded = $state(false);
 
-	const hasError = $derived(
-		!!errorDetail && (status === 'failed' || status === 'error' || statusVariant === 'uninstall')
-	);
+	const hasError = $derived(!!errorDetail);
 
 	function formatTimeAgo(iso: string | null): string {
 		if (!iso) return '\u2014';

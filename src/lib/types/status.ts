@@ -34,6 +34,24 @@ export interface MobileAppInstallSummary {
 	notApplicableUserCount?: number;
 }
 
+// ─── Per-Device App Install Status (Reports API) ───────────────────
+
+export interface AppDeviceInstallStatusRow {
+	deviceName: string;
+	deviceId: string;
+	userName: string;
+	userPrincipalName: string;
+	platform: string;
+	appVersion: string;
+	installState: string;
+	installStateDetail: string;
+	appInstallState: string;
+	appInstallStateDetails: string;
+	errorCode: number;
+	hexErrorCode: string;
+	lastModifiedDateTime: string;
+}
+
 // ─── Intune Reports API Types ──────────────────────────────────────
 
 export interface IntuneReportResponse {

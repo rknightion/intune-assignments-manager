@@ -38,7 +38,21 @@
 	// ─── Derived Counts ────────────────────────────────────────────
 	const allItems = $derived([
 		...wizard.selectedApps.map((a) => ({ id: a.id, name: a.displayName, type: 'app' as const })),
-		...wizard.selectedProfiles.map((p) => ({ id: p.id, name: p.name, type: 'profile' as const }))
+		...wizard.selectedProfiles.map((p) => ({
+			id: p.id,
+			name: p.name,
+			type: 'profile' as const
+		})),
+		...wizard.selectedCompliancePolicies.map((p) => ({
+			id: p.id,
+			name: p.displayName,
+			type: 'compliance' as const
+		})),
+		...wizard.selectedSecurityPolicies.map((p) => ({
+			id: p.id,
+			name: p.name,
+			type: 'security' as const
+		}))
 	]);
 
 	const totalAssignments = $derived(
@@ -70,8 +84,10 @@
 				url:
 					item.type === 'app'
 						? `/deviceAppManagement/mobileApps/${item.id}/assignments`
-						: `/deviceManagement/configurationPolicies/${item.id}/assignments`
-			}));
+						: item.type === 'compliance'
+							? `/deviceManagement/deviceCompliancePolicies/${item.id}/assignments`
+							: `/deviceManagement/configurationPolicies/${item.id}/assignments`
+			})); // 'profile' and 'security' both use configurationPolicies
 
 			const responses = await client.batch(batchRequests);
 
@@ -167,7 +183,7 @@
 				currentAssignments: currentAssignmentsMap.get(item.id) ?? [],
 				newGroups: wizard.selectedGroups,
 				newExclusionGroups: wizard.exclusionGroups,
-				newIntent: item.type === 'profile' ? null : wizard.intent,
+				newIntent: item.type !== 'app' ? null : wizard.intent,
 				newFilter: wizard.filterConfig,
 				groupNames,
 				filterNames
@@ -329,14 +345,14 @@
 						>
 							<div class="col-span-4 min-w-0">
 								<p class="text-ink truncate text-sm font-medium">{item.name}</p>
-								<p class="text-muted text-xs">{item.type === 'app' ? 'App' : 'Profile'}</p>
+								<p class="text-muted text-xs">{item.type === 'app' ? 'App' : item.type === 'compliance' ? 'Compliance' : item.type === 'security' ? 'Security' : 'Profile'}</p>
 							</div>
 							<div class="col-span-3 min-w-0">
 								<p class="text-ink truncate text-sm">{group.displayName}</p>
 							</div>
 							<div class="col-span-2">
 								<Badge variant={getIntentVariant(wizard.intent)}>
-									{getIntentLabel(item.type === 'profile' ? null : wizard.intent)}
+									{getIntentLabel(item.type === 'app' ? wizard.intent : null)}
 								</Badge>
 							</div>
 							<div class="col-span-3 min-w-0">
@@ -355,7 +371,7 @@
 										<AlertTriangle size={12} />
 										Currently: {getIntentLabel(conflict.existingIntent)}
 										<ArrowRight size={12} />
-										{getIntentLabel(item.type === 'profile' ? null : wizard.intent)}
+										{getIntentLabel(item.type === 'app' ? wizard.intent : null)}
 									</span>
 									<label class="flex cursor-pointer items-center gap-1">
 										<input
@@ -395,7 +411,7 @@
 						>
 							<div class="col-span-4 min-w-0">
 								<p class="text-ink truncate text-sm font-medium">{item.name}</p>
-								<p class="text-muted text-xs">{item.type === 'app' ? 'App' : 'Profile'}</p>
+								<p class="text-muted text-xs">{item.type === 'app' ? 'App' : item.type === 'compliance' ? 'Compliance' : item.type === 'security' ? 'Security' : 'Profile'}</p>
 							</div>
 							<div class="col-span-3 min-w-0">
 								<p class="text-ink truncate text-sm">{group.displayName}</p>

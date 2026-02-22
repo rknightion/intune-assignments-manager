@@ -32,6 +32,8 @@
 		type ConflictChoice
 	} from '$lib/types/wizard';
 	import type { MobileApp, ConfigurationPolicy, AssignmentIntent } from '$lib/types/graph';
+	import type { DeviceCompliancePolicy } from '$lib/types/compliance';
+	import { getCompliancePolicy } from '$lib/graph/compliance';
 
 	// ─── CSV Import ───────────────────────────────────────────────
 	let importDialogOpen = $state(false);
@@ -51,16 +53,25 @@
 	// Lifted data caches (survive back-navigation)
 	let cachedApps: MobileApp[] = $state([]);
 	let cachedProfiles: ConfigurationPolicy[] = $state([]);
+	let cachedCompliancePolicies: DeviceCompliancePolicy[] = $state([]);
+	let cachedSecurityPolicies: ConfigurationPolicy[] = $state([]);
 
 	// ─── URL Param Pre-selection ───────────────────────────────────
 	const preselectedAppId = page.url.searchParams.get('appId');
 	const preselectedProfileId = page.url.searchParams.get('profileId');
+	const preselectedCompliancePolicyId = page.url.searchParams.get('compliancePolicyId');
+	const preselectedSecurityPolicyId = page.url.searchParams.get('securityPolicyId');
 
 	// ─── Step Validation ───────────────────────────────────────────
 	const canProceed = $derived.by(() => {
 		switch (currentStepIndex) {
 			case 0:
-				return wizard.selectedApps.length > 0 || wizard.selectedProfiles.length > 0;
+				return (
+					wizard.selectedApps.length > 0 ||
+					wizard.selectedProfiles.length > 0 ||
+					wizard.selectedCompliancePolicies.length > 0 ||
+					wizard.selectedSecurityPolicies.length > 0
+				);
 			case 1:
 				return wizard.selectedGroups.length > 0;
 			case 2:
@@ -83,7 +94,12 @@
 		}
 	});
 
-	const totalSelected = $derived(wizard.selectedApps.length + wizard.selectedProfiles.length);
+	const totalSelected = $derived(
+		wizard.selectedApps.length +
+			wizard.selectedProfiles.length +
+			wizard.selectedCompliancePolicies.length +
+			wizard.selectedSecurityPolicies.length
+	);
 
 	// Step transition direction
 	let direction = $state<'forward' | 'back'>('forward');
@@ -133,6 +149,14 @@
 		wizard.selectedProfiles = profiles;
 	}
 
+	function updateCompliancePolicies(policies: DeviceCompliancePolicy[]): void {
+		wizard.selectedCompliancePolicies = policies;
+	}
+
+	function updateSecurityPolicies(policies: ConfigurationPolicy[]): void {
+		wizard.selectedSecurityPolicies = policies;
+	}
+
 	function updateGroups(groups: GroupTarget[]): void {
 		wizard.selectedGroups = groups;
 	}
@@ -169,6 +193,16 @@
 			})),
 			...wizard.selectedProfiles.map((p) => ({
 				kind: 'profile' as const,
+				id: p.id,
+				displayName: p.name
+			})),
+			...wizard.selectedCompliancePolicies.map((p) => ({
+				kind: 'compliance' as const,
+				id: p.id,
+				displayName: p.displayName
+			})),
+			...wizard.selectedSecurityPolicies.map((p) => ({
+				kind: 'security' as const,
 				id: p.id,
 				displayName: p.name
 			}))
@@ -236,11 +270,17 @@
 
 			const apps: MobileApp[] = [];
 			const profiles: ConfigurationPolicy[] = [];
+			const compliancePolicies: DeviceCompliancePolicy[] = [];
+			const securityPolicies: ConfigurationPolicy[] = [];
 
 			for (const [itemId, itemRows] of itemMap) {
 				const itemType = itemRows[0].itemType;
 				if (itemType === 'app') {
 					apps.push(await getApp(client, itemId));
+				} else if (itemType === 'compliance') {
+					compliancePolicies.push(await getCompliancePolicy(client, itemId));
+				} else if (itemType === 'security') {
+					securityPolicies.push(await getConfigPolicy(client, itemId));
 				} else {
 					profiles.push(await getConfigPolicy(client, itemId));
 				}
@@ -305,6 +345,8 @@
 			wizard = {
 				selectedApps: apps,
 				selectedProfiles: profiles,
+				selectedCompliancePolicies: compliancePolicies,
+				selectedSecurityPolicies: securityPolicies,
 				selectedGroups: Array.from(groupMap.values()),
 				exclusionGroups: Array.from(exclusionMap.values()),
 				intent: bestIntent,
@@ -362,14 +404,24 @@
 					<StepSelectItems
 						selectedApps={wizard.selectedApps}
 						selectedProfiles={wizard.selectedProfiles}
+						selectedCompliancePolicies={wizard.selectedCompliancePolicies}
+						selectedSecurityPolicies={wizard.selectedSecurityPolicies}
 						{preselectedAppId}
 						{preselectedProfileId}
+						preselectedCompliancePolicyId={preselectedCompliancePolicyId}
+						preselectedSecurityPolicyId={preselectedSecurityPolicyId}
 						apps={cachedApps}
 						profiles={cachedProfiles}
+						compliancePolicies={cachedCompliancePolicies}
+						securityPolicies={cachedSecurityPolicies}
 						onUpdateApps={updateApps}
 						onUpdateProfiles={updateProfiles}
+						onUpdateCompliancePolicies={updateCompliancePolicies}
+						onUpdateSecurityPolicies={updateSecurityPolicies}
 						onAppsLoaded={(apps) => (cachedApps = apps)}
 						onProfilesLoaded={(profiles) => (cachedProfiles = profiles)}
+						onCompliancePoliciesLoaded={(policies) => (cachedCompliancePolicies = policies)}
+						onSecurityPoliciesLoaded={(policies) => (cachedSecurityPolicies = policies)}
 					/>
 				{:else if currentStepIndex === 1}
 					<StepSelectGroups
@@ -384,6 +436,8 @@
 						filterConfig={wizard.filterConfig}
 						selectedApps={wizard.selectedApps}
 						selectedProfiles={wizard.selectedProfiles}
+						selectedCompliancePolicies={wizard.selectedCompliancePolicies}
+						selectedSecurityPolicies={wizard.selectedSecurityPolicies}
 						selectedGroups={wizard.selectedGroups}
 						onUpdateIntent={updateIntent}
 						onUpdateFilter={updateFilter}

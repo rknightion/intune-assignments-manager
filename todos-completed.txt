@@ -970,3 +970,260 @@ FILES TO MODIFY:
 - src/lib/stores/auth.svelte.ts (add scope tracking, incremental consent)
 - src/lib/auth/config.ts (restructure scopes into tiers)
 - src/lib/auth/msal.ts (update token acquisition for scope tracking)
+
+
+================================================================================
+PHASE 13: DEPLOYMENT STATUS DASHBOARD ✅ COMPLETE
+================================================================================
+
+GOAL: Show per-device and per-setting deployment status for apps, configuration
+      profiles, and compliance policies. This is the #1 admin complaint — seeing
+      whether an app actually installed on a device, or which specific compliance
+      setting is failing, requires 5+ clicks per item in the Intune portal.
+
+PROBLEM THIS SOLVES:
+In the Intune admin center, to see which devices failed to install an app, you
+must: navigate to Apps > select app > Device install status. For compliance
+policies, you must: navigate to Compliance > select policy > Per-setting status.
+Each requires separate navigation and there's no unified view. Our tool will
+provide drill-down status directly from the existing app/profile detail pages
+and a dedicated status overview route.
+
+GRAPH API ENDPOINTS:
+
+  App installation status per device:
+    GET /deviceAppManagement/mobileApps/{id}/deviceStatuses
+    Returns: { value: MobileAppInstallStatus[] }
+    Properties: deviceName, deviceId, osVersion, osDescription,
+                installState (installed|failed|notInstalled|uninstallFailed|
+                pendingInstall|unknown|notApplicable),
+                installStateDetail, errorCode, lastSyncDateTime,
+                mobileAppInstallStatusValue, userName, userPrincipalName
+
+  App install summary:
+    GET /deviceAppManagement/mobileApps/{id}/installSummary
+    Returns: MobileAppInstallSummary
+    Properties: installedDeviceCount, failedDeviceCount,
+                notInstalledDeviceCount, notApplicableDeviceCount,
+                pendingInstallDeviceCount, installedUserCount,
+                failedUserCount, notInstalledUserCount,
+                notApplicableUserCount
+
+  Config profile device status (traditional device configurations):
+    GET /deviceManagement/deviceConfigurations/{id}/deviceStatuses
+    Returns: { value: DeviceConfigurationDeviceStatus[] }
+    Properties: deviceDisplayName, userName, status
+                (unknown|notApplicable|compliant|remediated|nonCompliant|
+                error|conflict|notAssigned), lastReportedDateTime,
+                userPrincipalName
+
+  Config profile status overview:
+    GET /deviceManagement/deviceConfigurations/{id}/deviceStatusOverview
+    Returns: DeviceConfigurationDeviceOverview
+    Properties: pendingCount, notApplicableCount, successCount,
+                errorCount, failedCount, lastUpdateDateTime,
+                configurationVersion
+
+  Compliance policy device status:
+    GET /deviceManagement/deviceCompliancePolicies/{id}/deviceStatuses
+    Returns: { value: DeviceComplianceDeviceStatus[] }
+    Properties: deviceDisplayName, userName, deviceModel, platform,
+                complianceGracePeriodExpirationDateTime, status,
+                lastReportedDateTime, userPrincipalName
+
+  Compliance per-setting status:
+    GET /deviceManagement/deviceCompliancePolicies/{id}/deviceSettingStateSummaries
+    Returns: { value: SettingStateDeviceSummary[] }
+    Properties: settingName, instancePath, compliantDeviceCount,
+                conflictDeviceCount, errorDeviceCount,
+                nonCompliantDeviceCount, notApplicableDeviceCount,
+                remediatedDeviceCount
+
+  Compliance per-setting per-device detail:
+    GET /deviceManagement/deviceCompliancePolicySettingStateSummaries/{id}/deviceComplianceSettingStates
+    Returns: { value: DeviceComplianceSettingState[] }
+    Properties: setting, settingName, deviceId, deviceName,
+                userId, userPrincipalName, state,
+                complianceGracePeriodExpirationDateTime
+
+PERMISSIONS:
+- DeviceManagementConfiguration.Read.All (already have ReadWrite)
+- DeviceManagementApps.Read.All (already have ReadWrite)
+
+STEPS:
+
+13.1 Define TypeScript types for status entities (src/lib/types/status.ts):
+     - MobileAppInstallStatus: deviceName, deviceId, osVersion,
+       installState (enum), installStateDetail, errorCode,
+       lastSyncDateTime, userName, userPrincipalName
+     - MobileAppInstallSummary: installedDeviceCount, failedDeviceCount,
+       notInstalledDeviceCount, notApplicableDeviceCount, pendingInstallDeviceCount
+     - DeviceConfigurationDeviceStatus: deviceDisplayName, userName,
+       status (enum), lastReportedDateTime, userPrincipalName
+     - DeviceConfigurationDeviceOverview: pendingCount, notApplicableCount,
+       successCount, errorCount, failedCount, lastUpdateDateTime
+     - DeviceComplianceDeviceStatus: deviceDisplayName, userName,
+       deviceModel, platform, status, lastReportedDateTime
+     - SettingStateDeviceSummary: settingName, compliantDeviceCount,
+       errorDeviceCount, nonCompliantDeviceCount, notApplicableDeviceCount
+     - DeviceComplianceSettingState: setting, settingName, deviceId,
+       deviceName, state, userPrincipalName
+
+13.2 Create Zod schemas for all status types (src/lib/types/status-schemas.ts):
+     - One schema per entity with runtime validation
+     - Reuse graphPagedResponseSchema wrapper
+
+13.3 Create status API module (src/lib/graph/status.ts):
+     - getAppInstallStatuses(client, appId): paginated device install status list
+     - getAppInstallSummary(client, appId): aggregate install counts
+     - getConfigDeviceStatuses(client, configId): config profile per-device status
+     - getConfigStatusOverview(client, configId): config profile aggregate counts
+     - getComplianceDeviceStatuses(client, policyId): compliance per-device status
+     - getComplianceSettingSummaries(client, policyId): per-setting summary
+     - getComplianceSettingStates(client, summaryId): per-setting per-device detail
+
+13.4 Add status tabs to existing app detail page (src/routes/apps/[id]/+page.svelte):
+     - New "Device Status" tab alongside existing "Assignments" tab
+     - Shows install summary card (installed/failed/pending/not applicable counts)
+     - Scrollable list of per-device install statuses
+     - Status badges: installed (green), failed (red), pending (yellow),
+       not applicable (gray)
+     - Search/filter by device name or user
+     - Click device row to see error details if failed
+
+13.5 Add status tabs to existing profile detail page
+     (src/routes/profiles/[id]/+page.svelte):
+     - "Device Status" tab with status overview card
+     - Per-device deployment status list
+     - Status badges matching Intune states
+
+13.6 Create new status overview route (src/routes/status/+page.svelte):
+     - Dashboard-style page with overall deployment health
+     - "Apps with failures" — list apps that have failed installs
+     - "Profiles with errors" — list profiles with deployment errors
+     - Quick navigation to drill into specific items
+     - Filterable by platform, status category
+
+13.7 Create status UI components:
+     - StatusSummaryCard.svelte — visual summary showing
+       success/failure/pending distribution with counts and percentages
+     - DeviceStatusRow.svelte — per-device status row with badge,
+       device name, user, last reported time
+     - SettingStatusRow.svelte — per-setting compliance status row
+
+FILES TO CREATE:
+- src/lib/types/status.ts
+- src/lib/types/status-schemas.ts
+- src/lib/graph/status.ts
+- src/routes/status/+page.svelte
+- src/lib/components/status/StatusSummaryCard.svelte
+- src/lib/components/status/DeviceStatusRow.svelte
+- src/lib/components/status/SettingStatusRow.svelte
+
+FILES TO MODIFY:
+- src/routes/apps/[id]/+page.svelte (add status tab)
+- src/routes/profiles/[id]/+page.svelte (add status tab)
+- src/routes/+layout.svelte (add Status nav link)
+
+================================================================================
+PHASE 14: DEVICE INVENTORY BROWSER ✅ COMPLETED
+================================================================================
+
+GOAL: Searchable, sortable device list showing managed device inventory with
+      key information admins check daily: compliance state, last sync time,
+      OS version, ownership type, and user assignment.
+
+PROBLEM THIS SOLVES:
+The Intune portal's device list is slow to load, filtering is limited and
+inconsistent, and viewing device details requires navigating to a separate
+page for each device. Admins frequently need to quickly find devices by name
+or check which devices haven't synced recently.
+
+GRAPH API ENDPOINTS:
+
+  List managed devices:
+    GET /deviceManagement/managedDevices
+    Supports: $filter (limited — deviceName eq/contains, managedDeviceOwnerType eq),
+              $select, $top, $skip, $orderby, $count
+    Returns: { value: ManagedDevice[] }
+    NOTE: $search is NOT supported. Implement client-side search for flexibility.
+
+  ManagedDevice key properties:
+    - id, deviceName, userDisplayName, userPrincipalName
+    - managedDeviceOwnerType (company|personal)
+    - operatingSystem, osVersion, deviceType
+    - complianceState (compliant|noncompliant|conflict|unknown|error|
+      inGracePeriod|configManager)
+    - lastSyncDateTime, enrolledDateTime
+    - model, manufacturer, serialNumber
+    - totalStorageSpaceInBytes, freeStorageSpaceInBytes
+    - managementAgent (eas|mdm|easMdm|intuneClient|easIntuneClient|
+      configurationManagerClient|configurationManagerClientMdm|unknown)
+    - isEncrypted, isSupervised
+    - azureADDeviceId, azureADRegistered
+    - emailAddress
+    - deviceRegistrationState
+
+PERMISSIONS:
+- DeviceManagementManagedDevices.Read.All (NEW — request via Phase 12 consent)
+
+STEPS:
+
+14.1 Define TypeScript types for managed devices (src/lib/types/device.ts):
+     - ManagedDevice: all key properties listed above
+     - ComplianceState enum
+     - DeviceOwnerType enum
+     - ManagementAgent enum
+     - DeviceType enum
+
+14.2 Create Zod schemas for device types (src/lib/types/device-schemas.ts):
+     - managedDeviceSchema with all properties
+     - Reuse graphPagedResponseSchema wrapper
+
+14.3 Create device API module (src/lib/graph/devices.ts):
+     - listDevices(client, options?): paginated device list with $top, $orderby
+     - getDevice(client, deviceId): single device by ID
+     - Options type with sort field, page size, filter
+
+14.4 Create devices list page (src/routes/devices/+page.svelte):
+     - Wrapped in AuthGuard AND PermissionGuard (from Phase 12)
+       with requiredScopes=['DeviceManagementManagedDevices.Read.All']
+     - PageHeader: "Devices" with device count
+     - SearchInput for client-side filtering by device name, user, serial number
+     - Sort options: Name A-Z, Name Z-A, Last Sync (newest), Last Sync (oldest),
+       Compliance State
+     - Filter chips: Platform (Windows/iOS/Android/macOS), Compliance State
+       (Compliant/Noncompliant/Unknown), Ownership (Corporate/Personal)
+     - DeviceRow for each device
+     - Pagination with "Load More" button
+     - Fetch 100 devices at a time (same pattern as apps/profiles)
+
+14.5 Create DeviceRow component (src/lib/components/ui/DeviceRow.svelte):
+     - Device name (bold), user name below
+     - Platform icon (Windows/Apple/Android)
+     - OS version text
+     - Compliance state badge: compliant (green), noncompliant (red),
+       unknown (gray), inGracePeriod (yellow)
+     - Last sync time as relative timestamp ("2 hours ago")
+     - Ownership badge (Corporate/Personal)
+     - Click navigates to /devices/[id]
+
+14.6 Create device utility functions (src/lib/utils/device-types.ts):
+     - getDeviceTypeInfo(deviceType): icon + label mapping
+     - getComplianceColor(state): color mapping for badges
+     - formatStorageSize(bytes): human-readable storage
+     - getOwnershipLabel(type): "Corporate" or "Personal"
+
+14.7 Add "Devices" navigation link to sidebar in src/routes/+layout.svelte
+
+FILES TO CREATE:
+- src/lib/types/device.ts
+- src/lib/types/device-schemas.ts
+- src/lib/graph/devices.ts
+- src/routes/devices/+page.svelte
+- src/lib/components/ui/DeviceRow.svelte
+- src/lib/utils/device-types.ts
+
+FILES TO MODIFY:
+- src/routes/+layout.svelte (add Devices nav link)
+

@@ -7,7 +7,8 @@
 	import {
 		AppWindow,
 		Settings,
-		CheckCircle,
+		ShieldCheck,
+		Swords,
 		Activity,
 		Layers,
 		Download,
@@ -19,8 +20,9 @@
 	import { dashboardCache } from '$lib/stores/dashboard-cache.svelte';
 	import { toFriendlyMessage } from '$lib/graph/errors';
 	import { listAuditEvents, buildAssignmentFilter } from '$lib/graph/audit';
+	import { listCompliancePolicies } from '$lib/graph/compliance';
+	import { listSecurityPolicies } from '$lib/graph/security';
 	import type { MobileApp, ConfigurationPolicy } from '$lib/types/graph';
-	import { mobileAppSchema, configurationPolicySchema } from '$lib/types/schemas';
 
 	// ─── Time-based Greeting ─────────────────────────────────────
 	const greeting = $derived.by(() => {
@@ -49,24 +51,26 @@
 		try {
 			const client = getGraphClient();
 
-			const [apps, profiles, auditResult] = await Promise.all([
-				client.fetchAll<MobileApp>('/deviceAppManagement/mobileApps'),
-				client.fetchAll<ConfigurationPolicy>('/deviceManagement/configurationPolicies'),
-				listAuditEvents(client, {
-					filter: buildAssignmentFilter(),
-					top: 5
-				})
-			]);
+			const [apps, profiles, compliancePolicies, securityPolicies, auditResult] =
+				await Promise.all([
+					client.fetchAll<MobileApp>('/deviceAppManagement/mobileApps'),
+					client.fetchAll<ConfigurationPolicy>(
+						'/deviceManagement/configurationPolicies'
+					),
+					listCompliancePolicies(client),
+					listSecurityPolicies(client),
+					listAuditEvents(client, {
+						filter: buildAssignmentFilter(),
+						top: 5
+					})
+				]);
 
-			const appCount = apps.length;
-			const profileCount = profiles.length;
-
-			const assignedApps = apps.filter((a) => mobileAppSchema.parse(a).isAssigned).length;
-			const assignedProfiles = profiles.filter(
-				(p) => configurationPolicySchema.parse(p).isAssigned
-			).length;
-
-			dashboardCache.setCounts(appCount, profileCount, assignedApps + assignedProfiles);
+			dashboardCache.setCounts(
+				apps.length,
+				profiles.length,
+				compliancePolicies.length,
+				securityPolicies.length
+			);
 			dashboardCache.setRecentActivity(auditResult.events);
 		} catch (err) {
 			dashboardCache.setError(toFriendlyMessage(err));
@@ -142,14 +146,14 @@
 				icon={Settings}
 			/>
 			<StatCard
-				label="Assigned Items"
-				value={dashboardCache.assignedCount ?? '---'}
-				icon={CheckCircle}
+				label="Compliance Policies"
+				value={dashboardCache.complianceCount ?? '---'}
+				icon={ShieldCheck}
 			/>
 			<StatCard
-				label="Recent Changes"
-				value={dashboardCache.recentActivity.length}
-				icon={Activity}
+				label="Security Policies"
+				value={dashboardCache.securityCount ?? '---'}
+				icon={Swords}
 			/>
 		</div>
 	{/if}

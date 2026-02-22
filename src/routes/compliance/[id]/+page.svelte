@@ -14,33 +14,32 @@
 	import AssignmentEditor from '$lib/components/assignments/AssignmentEditor.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import CsvExportButton from '$lib/components/csv/CsvExportButton.svelte';
-	import { Layers, Plus } from 'lucide-svelte';
+	import { Layers, Plus, ShieldAlert } from 'lucide-svelte';
 	import { getGraphClient } from '$lib/stores/graph';
 	import {
-		getConfigPolicy,
-		getConfigAssignments,
-		assignConfigPolicy
-	} from '$lib/graph/configurations';
+		getCompliancePolicy,
+		getCompliancePolicyAssignments,
+		assignCompliancePolicy
+	} from '$lib/graph/compliance';
 	import { getTargetKey } from '$lib/graph/merge';
 	import { resolveGroupNames } from '$lib/stores/group-cache';
 	import { ensureFiltersLoaded, getFilterById } from '$lib/stores/filter-cache';
-	import { getConfigStatusOverview, getConfigDeviceStatuses } from '$lib/graph/status';
+	import { getComplianceDeviceStatuses, getComplianceStatusOverview } from '$lib/graph/status';
 	import { toFriendlyMessage } from '$lib/graph/errors';
-	import { getProfileTypeInfo } from '$lib/utils/profile-types';
+	import { getCompliancePlatformInfo } from '$lib/utils/compliance-types';
 	import { exportAssignmentsCsv, type ExportableAssignment } from '$lib/utils/csv-assignments';
 	import type {
-		ConfigurationPolicy,
-		ConfigurationPolicyAssignment,
-		AssignmentTarget,
-		AssignmentIntent
-	} from '$lib/types/graph';
+		DeviceCompliancePolicy,
+		DeviceCompliancePolicyAssignment
+	} from '$lib/types/compliance';
+	import type { AssignmentTarget, AssignmentIntent } from '$lib/types/graph';
 	import type {
 		DeviceConfigurationDeviceOverview,
-		DeviceConfigurationDeviceStatus
+		DeviceComplianceDeviceStatus
 	} from '$lib/types/status';
 
-	let profile = $state<ConfigurationPolicy | null>(null);
-	let assignments = $state<ConfigurationPolicyAssignment[]>([]);
+	let policy = $state<DeviceCompliancePolicy | null>(null);
+	let assignments = $state<DeviceCompliancePolicyAssignment[]>([]);
 	let groupNames = $state<Map<string, string>>(new Map());
 	let loading = $state(false);
 	let error = $state<string | null>(null);
@@ -52,7 +51,7 @@
 
 	// Status tab state
 	let statusOverview = $state<DeviceConfigurationDeviceOverview | null>(null);
-	let deviceStatuses = $state<DeviceConfigurationDeviceStatus[]>([]);
+	let deviceStatuses = $state<DeviceComplianceDeviceStatus[]>([]);
 	let statusLoading = $state(false);
 	let statusError = $state<string | null>(null);
 	let statusSearch = $state('');
@@ -61,14 +60,14 @@
 	// Editor state
 	let editorOpen = $state(false);
 	let editorMode = $state<'add' | 'edit'>('add');
-	let editingAssignment = $state<ConfigurationPolicyAssignment | null>(null);
+	let editingAssignment = $state<DeviceCompliancePolicyAssignment | null>(null);
 
 	// Delete confirmation state
 	let deleteDialogOpen = $state(false);
-	let deletingAssignment = $state<ConfigurationPolicyAssignment | null>(null);
+	let deletingAssignment = $state<DeviceCompliancePolicyAssignment | null>(null);
 
-	const profileTypeInfo = $derived(
-		profile ? getProfileTypeInfo(profile.platforms, profile.technologies) : null
+	const platformInfo = $derived(
+		policy ? getCompliancePlatformInfo(policy['@odata.type']) : null
 	);
 	const hasAssignments = $derived(assignments.length > 0);
 
@@ -101,12 +100,12 @@
 			const client = getGraphClient();
 
 			const [policyData, assignmentData] = await Promise.all([
-				getConfigPolicy(client, id),
-				getConfigAssignments(client, id),
+				getCompliancePolicy(client, id),
+				getCompliancePolicyAssignments(client, id),
 				ensureFiltersLoaded(client)
 			]);
 
-			profile = policyData;
+			policy = policyData;
 			assignments = assignmentData;
 
 			const groupIds = assignmentData
@@ -128,7 +127,7 @@
 	async function refreshAssignments(): Promise<void> {
 		const id = page.params.id!;
 		const client = getGraphClient();
-		const assignmentData = await getConfigAssignments(client, id);
+		const assignmentData = await getCompliancePolicyAssignments(client, id);
 		assignments = assignmentData;
 
 		const groupIds = assignmentData
@@ -154,13 +153,13 @@
 		editorOpen = true;
 	}
 
-	function openEditEditor(assignment: ConfigurationPolicyAssignment): void {
+	function openEditEditor(assignment: DeviceCompliancePolicyAssignment): void {
 		editorMode = 'edit';
 		editingAssignment = assignment;
 		editorOpen = true;
 	}
 
-	function openDeleteDialog(assignment: ConfigurationPolicyAssignment): void {
+	function openDeleteDialog(assignment: DeviceCompliancePolicyAssignment): void {
 		deletingAssignment = assignment;
 		deleteDialogOpen = true;
 	}
@@ -169,7 +168,7 @@
 		target: AssignmentTarget,
 		_: AssignmentIntent | null
 	): Promise<void> {
-		if (!profile) return;
+		if (!policy) return;
 		editorOpen = false;
 		saving = true;
 		saveError = null;
@@ -179,9 +178,8 @@
 			const updated = [...assignments];
 			const existingIdx = updated.findIndex((a) => getTargetKey(a.target) === key);
 
-			const newAssignment: ConfigurationPolicyAssignment = {
+			const newAssignment: DeviceCompliancePolicyAssignment = {
 				id: existingIdx >= 0 ? updated[existingIdx].id : '',
-				intent: null,
 				target
 			};
 
@@ -191,7 +189,7 @@
 				updated.push(newAssignment);
 			}
 
-			await assignConfigPolicy(getGraphClient(), profile.id, updated);
+			await assignCompliancePolicy(getGraphClient(), policy.id, updated);
 			await refreshAssignments();
 		} catch (err) {
 			saveError = toFriendlyMessage(err);
@@ -201,7 +199,7 @@
 	}
 
 	async function handleDelete(): Promise<void> {
-		if (!profile || !deletingAssignment) return;
+		if (!policy || !deletingAssignment) return;
 		deleteDialogOpen = false;
 		saving = true;
 		saveError = null;
@@ -210,7 +208,7 @@
 			const key = getTargetKey(deletingAssignment.target);
 			const updated = assignments.filter((a) => getTargetKey(a.target) !== key);
 
-			await assignConfigPolicy(getGraphClient(), profile.id, updated);
+			await assignCompliancePolicy(getGraphClient(), policy.id, updated);
 			await refreshAssignments();
 		} catch (err) {
 			saveError = toFriendlyMessage(err);
@@ -236,20 +234,20 @@
 	}
 
 	function exportCsv(): string {
-		if (!profile) return '';
+		if (!policy) return '';
 		const exportable: ExportableAssignment[] = assignments.map((a) => ({
-			itemType: 'profile',
-			itemName: profile!.name,
-			itemId: profile!.id,
+			itemType: 'compliance',
+			itemName: policy!.displayName,
+			itemId: policy!.id,
 			target: a.target,
-			intent: a.intent
+			intent: null
 		}));
 		return exportAssignmentsCsv(exportable, groupNames, buildFilterNames());
 	}
 
 	// ─── Status tab ───────────────────────────────────────────────────
 
-	function getConfigStatusVariant(
+	function getComplianceStatusVariant(
 		status: string
 	): 'required' | 'available' | 'uninstall' | 'neutral' {
 		switch (status) {
@@ -266,7 +264,7 @@
 		}
 	}
 
-	function getConfigStatusLabel(status: string): string {
+	function getComplianceStatusLabel(status: string): string {
 		switch (status) {
 			case 'compliant':
 				return 'Compliant';
@@ -305,15 +303,15 @@
 		try {
 			const client = getGraphClient();
 			const [overview, statuses] = await Promise.all([
-				getConfigStatusOverview(client, id),
-				getConfigDeviceStatuses(client, id)
+				getComplianceStatusOverview(client, id),
+				getComplianceDeviceStatuses(client, id)
 			]);
 			statusOverview = overview;
 			deviceStatuses = statuses;
 			statusLoaded = true;
 		} catch {
 			statusError =
-				'Device status is not available for Settings Catalog profiles. Status tracking is available for legacy device configuration profiles.';
+				'Device status data is not available for this compliance policy.';
 		} finally {
 			statusLoading = false;
 		}
@@ -363,13 +361,13 @@
 					<Skeleton height="3rem" rounded="lg" />
 				{/each}
 			</div>
-		{:else if profile}
+		{:else if policy}
 			<!-- Redesigned info panel -->
 			<div class="panel-raised mb-6">
 				<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div class="flex items-center gap-4">
-						{#if profileTypeInfo}
-							{@const TypeIcon = profileTypeInfo.icon}
+						{#if platformInfo}
+							{@const TypeIcon = platformInfo.icon}
 							<div
 								class="bg-accent-light flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
 							>
@@ -378,20 +376,24 @@
 						{/if}
 						<div>
 							<h1 class="text-ink text-2xl font-bold tracking-tight">
-								{profile.name}
+								{policy.displayName}
 							</h1>
 							<p class="text-ink-faint text-sm">
-								{profile.settingCount} setting{profile.settingCount !== 1 ? 's' : ''}
+								v{policy.version}
 							</p>
 						</div>
 					</div>
 					<div class="flex gap-2">
 						<CsvExportButton
 							getCsvContent={exportCsv}
-							filename="{profile?.name ?? 'profile'}-assignments.csv"
+							filename="{policy?.displayName ?? 'compliance-policy'}-assignments.csv"
 							disabled={assignments.length === 0}
 						/>
-						<Button variant="primary" icon={Layers} href="/assign?profileId={profile?.id}">
+						<Button
+							variant="primary"
+							icon={Layers}
+							href="/assign?compliancePolicyId={policy?.id}"
+						>
 							Edit in Bulk Assign
 						</Button>
 					</div>
@@ -399,17 +401,16 @@
 
 				<!-- Metadata pills -->
 				<div class="mt-4 flex flex-wrap gap-2">
-					{#if profileTypeInfo}
-						<Badge variant="info">{profileTypeInfo.label}</Badge>
-						<Badge variant="outline">{profileTypeInfo.technology}</Badge>
+					{#if platformInfo}
+						<Badge variant="info">{platformInfo.label}</Badge>
 					{/if}
 					<Badge variant={hasAssignments ? 'required' : 'neutral'} dot>
 						{hasAssignments ? 'Assigned' : 'Unassigned'}
 					</Badge>
 				</div>
 
-				{#if profile.description}
-					<p class="text-ink-faint mt-3 text-sm">{profile.description}</p>
+				{#if policy.description}
+					<p class="text-ink-faint mt-3 text-sm">{policy.description}</p>
 				{/if}
 			</div>
 
@@ -440,7 +441,7 @@
 
 				{#if assignments.length === 0}
 					<EmptyState
-						icon={Layers}
+						icon={ShieldAlert}
 						title="No assignments yet"
 						description="Add an assignment or use Bulk Assign to get started."
 					>
@@ -463,7 +464,7 @@
 							<AssignmentRow
 								targetName={resolveTargetName(assignment.target)}
 								targetType={assignment.target['@odata.type']}
-								intent={assignment.intent}
+								intent={null}
 								filterName={resolveFilterName(assignment.target)}
 								filterType={assignment.target.deviceAndAppManagementAssignmentFilterType}
 								isExclusion={assignment.target['@odata.type'] ===
@@ -483,7 +484,11 @@
 						{/each}
 					</div>
 				{:else if statusError}
-					<EmptyState icon={Layers} title="Status unavailable" description={statusError} />
+					<EmptyState
+						icon={ShieldAlert}
+						title="Status unavailable"
+						description={statusError}
+					/>
 				{:else if statusOverview}
 					<div class="mb-4">
 						<StatusSummaryCard
@@ -521,7 +526,10 @@
 
 					{#if deviceStatuses.length > 0}
 						<div class="mb-3">
-							<SearchInput placeholder="Filter by device or user..." bind:value={statusSearch} />
+							<SearchInput
+								placeholder="Filter by device or user..."
+								bind:value={statusSearch}
+							/>
 						</div>
 						<div class="panel overflow-clip p-0">
 							<div
@@ -536,8 +544,8 @@
 								<DeviceStatusRow
 									deviceName={status.deviceDisplayName}
 									userName={status.userName ?? ''}
-									statusVariant={getConfigStatusVariant(status.status)}
-									statusLabel={getConfigStatusLabel(status.status)}
+									statusVariant={getComplianceStatusVariant(status.status)}
+									statusLabel={getComplianceStatusLabel(status.status)}
 									lastReported={status.lastReportedDateTime}
 								/>
 							{/each}
@@ -549,9 +557,9 @@
 						</div>
 					{:else}
 						<EmptyState
-							icon={Layers}
+							icon={ShieldAlert}
 							title="No device statuses"
-							description="No device deployment status data is available for this profile."
+							description="No device deployment status data is available for this compliance policy."
 						/>
 					{/if}
 				{/if}
@@ -563,10 +571,12 @@
 	<AssignmentEditor
 		open={editorOpen}
 		mode={editorMode}
-		itemKind="profile"
+		itemKind="compliance"
 		existingTarget={editingAssignment?.target}
-		existingIntent={editingAssignment?.intent as AssignmentIntent | null | undefined}
-		existingTargetName={editingAssignment ? resolveTargetName(editingAssignment.target) : undefined}
+		existingIntent={null}
+		existingTargetName={editingAssignment
+			? resolveTargetName(editingAssignment.target)
+			: undefined}
 		onSave={handleEditorSave}
 		onCancel={() => (editorOpen = false)}
 	/>

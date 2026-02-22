@@ -9,6 +9,7 @@ import type {
 	MobileAppAssignment
 } from '$lib/types/graph';
 import type { ConflictChoice, FilterConfig, GroupTarget } from '$lib/types/wizard';
+import type { DeviceCompliancePolicyAssignment } from '$lib/types/compliance';
 
 // ─── Merge Parameter Types ─────────────────────────────────────────
 
@@ -24,6 +25,15 @@ export interface MergeAppParams {
 
 export interface MergeProfileParams {
 	current: ConfigurationPolicyAssignment[];
+	groups: GroupTarget[];
+	exclusionGroups: GroupTarget[];
+	filter: FilterConfig | null;
+	conflicts: ConflictChoice[];
+	itemId: string;
+}
+
+export interface MergeComplianceParams {
+	current: DeviceCompliancePolicyAssignment[];
 	groups: GroupTarget[];
 	exclusionGroups: GroupTarget[];
 	filter: FilterConfig | null;
@@ -209,6 +219,57 @@ export function mergeProfileAssignments(
 		existingByKey.set(key, {
 			id: '',
 			intent: null,
+			target
+		});
+	}
+
+	return Array.from(existingByKey.values());
+}
+
+// ─── Compliance Policy Assignment Merge ─────────────────────────────
+
+export function mergeCompliancePolicyAssignments(
+	params: MergeComplianceParams
+): DeviceCompliancePolicyAssignment[] {
+	const { current, groups, exclusionGroups, filter, conflicts, itemId } = params;
+
+	const existingByKey = new Map<string, DeviceCompliancePolicyAssignment>();
+	for (const assignment of current) {
+		existingByKey.set(getTargetKey(assignment.target), assignment);
+	}
+
+	// Process inclusion groups
+	for (const group of groups) {
+		const target = buildAssignmentTarget(group, filter);
+		const key = getTargetKey(target);
+		const existing = existingByKey.get(key);
+
+		if (existing) {
+			const resolution = findConflictResolution(conflicts, itemId, key);
+			if (resolution === 'skip') {
+				continue;
+			}
+		}
+		existingByKey.set(key, {
+			id: '',
+			target
+		});
+	}
+
+	// Process exclusion groups
+	for (const group of exclusionGroups) {
+		const target = buildExclusionTarget(group, filter);
+		const key = getTargetKey(target);
+		const existing = existingByKey.get(key);
+
+		if (existing) {
+			const resolution = findConflictResolution(conflicts, itemId, key);
+			if (resolution === 'skip') {
+				continue;
+			}
+		}
+		existingByKey.set(key, {
+			id: '',
 			target
 		});
 	}

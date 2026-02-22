@@ -13,7 +13,10 @@
 		LogIn,
 		LogOut,
 		ShieldCheck,
-		Activity
+		ShieldAlert,
+		Swords,
+		Activity,
+		Monitor
 	} from 'lucide-svelte';
 	import favicon from '$lib/assets/favicon.svg';
 	import { auth, initAuth, login, logout } from '$lib/stores/auth.svelte';
@@ -69,8 +72,14 @@
 			items: [
 				{ href: '/apps', label: 'Apps', icon: Grid3x3 },
 				{ href: '/profiles', label: 'Config Profiles', icon: Settings },
+				{ href: '/compliance', label: 'Compliance', icon: ShieldAlert },
+				{ href: '/security', label: 'Endpoint Security', icon: Swords },
 				{ href: '/status', label: 'Deploy Status', icon: Activity }
 			]
+		},
+		{
+			label: 'Devices',
+			items: [{ href: '/devices', label: 'Device Inventory', icon: Monitor }]
 		},
 		{
 			label: 'Activity',
@@ -89,8 +98,8 @@
 	const mobileNavItems = [
 		{ href: '/', label: 'Home', icon: LayoutDashboard },
 		{ href: '/apps', label: 'Apps', icon: Grid3x3 },
+		{ href: '/devices', label: 'Devices', icon: Monitor },
 		{ href: '/profiles', label: 'Profiles', icon: Settings },
-		{ href: '/audit', label: 'Audit', icon: ClipboardList },
 		{ href: '/assign', label: 'Assign', icon: Layers }
 	];
 

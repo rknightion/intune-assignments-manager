@@ -1,4 +1,5 @@
 import type { MobileApp, ConfigurationPolicy, AssignmentIntent } from './graph';
+import type { DeviceCompliancePolicy } from './compliance';
 
 // ─── Group Target ──────────────────────────────────────────────────
 
@@ -23,6 +24,8 @@ export interface FilterConfig {
 export interface WizardState {
 	selectedApps: MobileApp[];
 	selectedProfiles: ConfigurationPolicy[];
+	selectedCompliancePolicies: DeviceCompliancePolicy[];
+	selectedSecurityPolicies: ConfigurationPolicy[];
 	selectedGroups: GroupTarget[];
 	intent: AssignmentIntent;
 	filterConfig: FilterConfig | null;
@@ -33,6 +36,8 @@ export function createDefaultWizardState(): WizardState {
 	return {
 		selectedApps: [],
 		selectedProfiles: [],
+		selectedCompliancePolicies: [],
+		selectedSecurityPolicies: [],
 		selectedGroups: [],
 		intent: 'required',
 		filterConfig: null,
@@ -65,7 +70,7 @@ export type ConflictResolution = 'update' | 'skip';
 export interface AssignmentConflict {
 	itemId: string;
 	itemName: string;
-	itemType: 'app' | 'profile';
+	itemType: 'app' | 'profile' | 'compliance' | 'security';
 	targetDisplayName: string;
 	targetKey: string;
 	existingIntent: string | null;
@@ -79,7 +84,9 @@ export interface AssignmentConflict {
 
 export type AssignableItem =
 	| { kind: 'app'; id: string; displayName: string }
-	| { kind: 'profile'; id: string; displayName: string };
+	| { kind: 'profile'; id: string; displayName: string }
+	| { kind: 'compliance'; id: string; displayName: string }
+	| { kind: 'security'; id: string; displayName: string };
 
 export interface ConflictChoice {
 	itemId: string;
@@ -90,7 +97,7 @@ export interface ConflictChoice {
 export interface AssignmentResult {
 	itemId: string;
 	itemName: string;
-	itemKind: 'app' | 'profile';
+	itemKind: 'app' | 'profile' | 'compliance' | 'security';
 	status: 'success' | 'error';
 	error?: string;
 }

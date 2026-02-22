@@ -12,6 +12,7 @@
 		MobileApp,
 		ConfigurationPolicy
 	} from '$lib/types/graph';
+	import type { DeviceCompliancePolicy } from '$lib/types/compliance';
 	import { Info } from 'lucide-svelte';
 
 	interface FilterConfig {
@@ -31,6 +32,8 @@
 		filterConfig: FilterConfig | null;
 		selectedApps: MobileApp[];
 		selectedProfiles: ConfigurationPolicy[];
+		selectedCompliancePolicies: DeviceCompliancePolicy[];
+		selectedSecurityPolicies: ConfigurationPolicy[];
 		selectedGroups: GroupTarget[];
 		onUpdateIntent: (intent: AssignmentIntent) => void;
 		onUpdateFilter: (config: FilterConfig | null) => void;
@@ -41,6 +44,8 @@
 		filterConfig,
 		selectedApps,
 		selectedProfiles,
+		selectedCompliancePolicies,
+		selectedSecurityPolicies,
 		selectedGroups,
 		onUpdateIntent,
 		onUpdateFilter
@@ -145,6 +150,8 @@
 
 	const appCount = $derived(selectedApps.length);
 	const profileCount = $derived(selectedProfiles.length);
+	const complianceCount = $derived(selectedCompliancePolicies.length);
+	const securityCount = $derived(selectedSecurityPolicies.length);
 	const groupCount = $derived(selectedGroups.length);
 
 	const previewParts = $derived.by(() => {
@@ -154,6 +161,16 @@
 		}
 		if (profileCount > 0) {
 			parts.push(`${profileCount} profile${profileCount !== 1 ? 's' : ''}`);
+		}
+		if (complianceCount > 0) {
+			parts.push(
+				`${complianceCount} compliance polic${complianceCount !== 1 ? 'ies' : 'y'}`
+			);
+		}
+		if (securityCount > 0) {
+			parts.push(
+				`${securityCount} security polic${securityCount !== 1 ? 'ies' : 'y'}`
+			);
 		}
 		return parts.join(' and ');
 	});
@@ -199,12 +216,13 @@
 		</div>
 	</div>
 
-	<!-- Info callout for profiles -->
-	{#if selectedProfiles.length > 0}
+	<!-- Info callout for profiles/compliance/security -->
+	{#if selectedProfiles.length > 0 || selectedCompliancePolicies.length > 0 || selectedSecurityPolicies.length > 0}
 		<div class="panel-inset border-accent flex items-start gap-3 border-l-2">
 			<Info size={16} class="text-accent mt-0.5 shrink-0" />
 			<p class="text-ink-light text-sm">
-				Intent applies to apps only. Configuration profiles are always applied to targeted groups.
+				Intent applies to apps only. Configuration profiles, compliance policies, and endpoint
+				security policies are always applied to targeted groups.
 			</p>
 		</div>
 	{/if}

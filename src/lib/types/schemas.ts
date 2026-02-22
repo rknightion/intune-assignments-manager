@@ -68,7 +68,15 @@ export const configurationPolicySchema = z.looseObject({
 	technologies: z.string().optional(),
 	roleScopeTagIds: z.array(z.string()).optional(),
 	settingCount: z.number().optional(),
-	isAssigned: z.boolean().optional()
+	isAssigned: z.boolean().optional(),
+	templateReference: z
+		.object({
+			templateFamily: z.string().nullable().optional(),
+			templateId: z.string().nullable().optional(),
+			templateDisplayName: z.string().nullable().optional(),
+			templateDisplayVersion: z.string().nullable().optional()
+		})
+		.optional()
 });
 
 export const configurationPolicyAssignmentSchema = z.looseObject({

@@ -66,6 +66,12 @@ export interface ConfigurationPolicy {
 	roleScopeTagIds: string[];
 	settingCount: number;
 	isAssigned: boolean;
+	templateReference?: {
+		templateFamily?: string | null;
+		templateId?: string | null;
+		templateDisplayName?: string | null;
+		templateDisplayVersion?: string | null;
+	};
 }
 
 export interface ConfigurationPolicyAssignment {

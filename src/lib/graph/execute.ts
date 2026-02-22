@@ -6,6 +6,7 @@ import type {
 	GraphPagedResponse,
 	MobileAppAssignment
 } from '$lib/types/graph';
+import type { DeviceCompliancePolicyAssignment } from '$lib/types/compliance';
 import type {
 	AssignableItem,
 	AssignmentResult,
@@ -14,9 +15,14 @@ import type {
 	GroupTarget,
 	ProgressCallback
 } from '$lib/types/wizard';
-import { mergeAppAssignments, mergeProfileAssignments } from '$lib/graph/merge';
+import {
+	mergeAppAssignments,
+	mergeProfileAssignments,
+	mergeCompliancePolicyAssignments
+} from '$lib/graph/merge';
 import { getAppAssignments } from '$lib/graph/apps';
 import { getConfigAssignments } from '$lib/graph/configurations';
+import { getCompliancePolicyAssignments } from '$lib/graph/compliance';
 
 // ─── Constants ─────────────────────────────────────────────────────
 
@@ -44,7 +50,10 @@ export interface BulkAssignmentResult {
 
 interface FetchedItem {
 	item: AssignableItem;
-	assignments: MobileAppAssignment[] | ConfigurationPolicyAssignment[];
+	assignments:
+		| MobileAppAssignment[]
+		| ConfigurationPolicyAssignment[]
+		| DeviceCompliancePolicyAssignment[];
 }
 
 interface ErrorBody {
@@ -69,12 +78,24 @@ function getAssignmentUrl(item: AssignableItem): string {
 	if (item.kind === 'app') {
 		return `/deviceAppManagement/mobileApps/${item.id}/assignments`;
 	}
+	if (item.kind === 'compliance') {
+		return `/deviceManagement/deviceCompliancePolicies/${item.id}/assignments`;
+	}
+	if (item.kind === 'security') {
+		return `/deviceManagement/configurationPolicies/${item.id}/assignments`;
+	}
 	return `/deviceManagement/configurationPolicies/${item.id}/assignments`;
 }
 
 function getAssignUrl(item: AssignableItem): string {
 	if (item.kind === 'app') {
 		return `/deviceAppManagement/mobileApps/${item.id}/assign`;
+	}
+	if (item.kind === 'compliance') {
+		return `/deviceManagement/deviceCompliancePolicies/${item.id}/assign`;
+	}
+	if (item.kind === 'security') {
+		return `/deviceManagement/configurationPolicies/${item.id}/assign`;
 	}
 	return `/deviceManagement/configurationPolicies/${item.id}/assign`;
 }
@@ -144,10 +165,16 @@ async function fetchCurrentAssignments(
 		// If paginated, fall back to individual fetch
 		if (body['@odata.nextLink']) {
 			try {
-				const fullAssignments =
-					item.kind === 'app'
-						? await getAppAssignments(client, item.id)
-						: await getConfigAssignments(client, item.id);
+				let fullAssignments;
+				if (item.kind === 'app') {
+					fullAssignments = await getAppAssignments(client, item.id);
+				} else if (item.kind === 'compliance') {
+					fullAssignments = await getCompliancePolicyAssignments(client, item.id);
+				} else if (item.kind === 'security') {
+					fullAssignments = await getConfigAssignments(client, item.id);
+				} else {
+					fullAssignments = await getConfigAssignments(client, item.id);
+				}
 				fetched.push({ item, assignments: fullAssignments });
 			} catch (err) {
 				errors.push({
@@ -220,6 +247,32 @@ function mergeAssignments(fetched: FetchedItem[], params: BulkAssignmentParams):
 			merged.push({
 				item,
 				body: { mobileAppAssignments: mergedList }
+			});
+		} else if (item.kind === 'compliance') {
+			const mergedList = mergeCompliancePolicyAssignments({
+				current: assignments as DeviceCompliancePolicyAssignment[],
+				groups,
+				exclusionGroups,
+				filter,
+				conflicts,
+				itemId: item.id
+			});
+			merged.push({
+				item,
+				body: { assignments: mergedList }
+			});
+		} else if (item.kind === 'security') {
+			const mergedList = mergeProfileAssignments({
+				current: assignments as ConfigurationPolicyAssignment[],
+				groups,
+				exclusionGroups,
+				filter,
+				conflicts,
+				itemId: item.id
+			});
+			merged.push({
+				item,
+				body: { assignments: mergedList }
 			});
 		} else {
 			const mergedList = mergeProfileAssignments({

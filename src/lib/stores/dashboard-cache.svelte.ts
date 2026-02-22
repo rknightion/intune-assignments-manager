@@ -6,7 +6,8 @@ const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 interface DashboardCacheData {
 	appCount: number;
 	profileCount: number;
-	assignedCount: number;
+	complianceCount: number;
+	securityCount: number;
 	recentActivity: AuditEvent[];
 	timestamp: number;
 }
@@ -14,7 +15,8 @@ interface DashboardCacheData {
 function createDashboardCache() {
 	let appCount = $state<number | null>(null);
 	let profileCount = $state<number | null>(null);
-	let assignedCount = $state<number | null>(null);
+	let complianceCount = $state<number | null>(null);
+	let securityCount = $state<number | null>(null);
 	let recentActivity = $state<AuditEvent[]>([]);
 	let loading = $state(false);
 	let error = $state<string | null>(null);
@@ -27,7 +29,8 @@ function createDashboardCache() {
 			if (Date.now() - data.timestamp > CACHE_TTL) return false;
 			appCount = data.appCount;
 			profileCount = data.profileCount;
-			assignedCount = data.assignedCount;
+			complianceCount = data.complianceCount;
+			securityCount = data.securityCount;
 			recentActivity = data.recentActivity;
 			return true;
 		} catch {
@@ -40,7 +43,8 @@ function createDashboardCache() {
 		const data: DashboardCacheData = {
 			appCount: appCount ?? 0,
 			profileCount: profileCount ?? 0,
-			assignedCount: assignedCount ?? 0,
+			complianceCount: complianceCount ?? 0,
+			securityCount: securityCount ?? 0,
 			recentActivity,
 			timestamp: Date.now()
 		};
@@ -58,8 +62,11 @@ function createDashboardCache() {
 		get profileCount() {
 			return profileCount;
 		},
-		get assignedCount() {
-			return assignedCount;
+		get complianceCount() {
+			return complianceCount;
+		},
+		get securityCount() {
+			return securityCount;
 		},
 		get recentActivity() {
 			return recentActivity;
@@ -81,10 +88,11 @@ function createDashboardCache() {
 			error = e;
 		},
 
-		setCounts(apps: number, profiles: number, assigned: number) {
+		setCounts(apps: number, profiles: number, compliance: number, security: number) {
 			appCount = apps;
 			profileCount = profiles;
-			assignedCount = assigned;
+			complianceCount = compliance;
+			securityCount = security;
 			saveToLocalStorage();
 		},
 
@@ -107,7 +115,8 @@ function createDashboardCache() {
 		clearCache() {
 			appCount = null;
 			profileCount = null;
-			assignedCount = null;
+			complianceCount = null;
+			securityCount = null;
 			recentActivity = [];
 			error = null;
 			try {

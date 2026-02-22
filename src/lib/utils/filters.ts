@@ -1,6 +1,10 @@
 import { Monitor, Smartphone, TabletSmartphone, Globe } from 'lucide-svelte';
 import type { MobileApp, ConfigurationPolicy } from '$lib/types/graph';
+import type { DeviceCompliancePolicy } from '$lib/types/compliance';
+import type { ManagedDevice } from '$lib/types/device';
 import { getAppTypeInfo } from '$lib/utils/app-types';
+import { getCompliancePlatformInfo } from '$lib/utils/compliance-types';
+import { getDeviceTypeInfo } from '$lib/utils/device-types';
 import { getPlatformLabel, getTechnologyLabel } from '$lib/utils/profile-types';
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -174,4 +178,197 @@ export function hasActiveProfileFilters(
 	assignmentStatus: AssignmentStatus
 ): boolean {
 	return platforms.length > 0 || technologies.length > 0 || assignmentStatus !== 'all';
+}
+
+// ─── Compliance Policy Platform Filter Options ──────────────────────
+
+export const COMPLIANCE_PLATFORM_OPTIONS: FilterOption[] = [
+	{ id: 'Windows', label: 'Windows', icon: Monitor },
+	{ id: 'iOS', label: 'iOS', icon: Smartphone },
+	{ id: 'Android', label: 'Android', icon: TabletSmartphone },
+	{ id: 'macOS', label: 'macOS', icon: Monitor }
+];
+
+// ─── Compliance Policy Filter Predicate ─────────────────────────────
+
+export function filterCompliancePolicies(
+	policies: DeviceCompliancePolicy[],
+	options: {
+		search?: string;
+		platforms?: string[];
+		assignmentStatus?: AssignmentStatus;
+	}
+): DeviceCompliancePolicy[] {
+	let result = policies;
+
+	const q = options.search?.trim().toLowerCase();
+	if (q) {
+		result = result.filter((p) => p.displayName.toLowerCase().includes(q));
+	}
+
+	if (options.platforms && options.platforms.length > 0) {
+		const platformSet = new Set(options.platforms);
+		result = result.filter((p) => {
+			const info = getCompliancePlatformInfo(p['@odata.type']);
+			return platformSet.has(info.platform);
+		});
+	}
+
+	if (options.assignmentStatus === 'assigned') {
+		result = result.filter((p) => p.isAssigned);
+	} else if (options.assignmentStatus === 'unassigned') {
+		result = result.filter((p) => !p.isAssigned);
+	}
+
+	return result;
+}
+
+export function hasActiveComplianceFilters(
+	platforms: string[],
+	assignmentStatus: AssignmentStatus
+): boolean {
+	return platforms.length > 0 || assignmentStatus !== 'all';
+}
+
+// ─── Device Platform Filter Options ─────────────────────────────────
+
+export const DEVICE_PLATFORM_OPTIONS: FilterOption[] = [
+	{ id: 'Windows', label: 'Windows', icon: Monitor },
+	{ id: 'iOS', label: 'iOS', icon: Smartphone },
+	{ id: 'Android', label: 'Android', icon: TabletSmartphone },
+	{ id: 'macOS', label: 'macOS', icon: Monitor },
+	{ id: 'Linux', label: 'Linux', icon: Monitor }
+];
+
+// ─── Device Compliance Filter Options ───────────────────────────────
+
+export const DEVICE_COMPLIANCE_OPTIONS: FilterOption[] = [
+	{ id: 'compliant', label: 'Compliant' },
+	{ id: 'noncompliant', label: 'Noncompliant' },
+	{ id: 'unknown', label: 'Unknown' },
+	{ id: 'inGracePeriod', label: 'In Grace Period' },
+	{ id: 'error', label: 'Error' }
+];
+
+// ─── Device Ownership Filter Options ────────────────────────────────
+
+export const DEVICE_OWNERSHIP_OPTIONS: FilterOption[] = [
+	{ id: 'company', label: 'Corporate' },
+	{ id: 'personal', label: 'Personal' }
+];
+
+// ─── Device Filter Predicate ────────────────────────────────────────
+
+export function filterDevices(
+	devices: ManagedDevice[],
+	options: {
+		search?: string;
+		platforms?: string[];
+		complianceStates?: string[];
+		ownershipTypes?: string[];
+	}
+): ManagedDevice[] {
+	let result = devices;
+
+	const q = options.search?.trim().toLowerCase();
+	if (q) {
+		result = result.filter(
+			(d) =>
+				d.deviceName.toLowerCase().includes(q) ||
+				(d.userDisplayName?.toLowerCase().includes(q) ?? false) ||
+				(d.serialNumber?.toLowerCase().includes(q) ?? false) ||
+				(d.userPrincipalName?.toLowerCase().includes(q) ?? false)
+		);
+	}
+
+	if (options.platforms && options.platforms.length > 0) {
+		const platforms = new Set(options.platforms);
+		result = result.filter((d) => {
+			const info = getDeviceTypeInfo(d.operatingSystem);
+			return platforms.has(info.label);
+		});
+	}
+
+	if (options.complianceStates && options.complianceStates.length > 0) {
+		const states = new Set(options.complianceStates);
+		result = result.filter((d) => states.has(d.complianceState));
+	}
+
+	if (options.ownershipTypes && options.ownershipTypes.length > 0) {
+		const types = new Set(options.ownershipTypes);
+		result = result.filter((d) => types.has(d.managedDeviceOwnerType));
+	}
+
+	return result;
+}
+
+export function hasActiveDeviceFilters(
+	platforms: string[],
+	complianceStates: string[],
+	ownershipTypes: string[]
+): boolean {
+	return platforms.length > 0 || complianceStates.length > 0 || ownershipTypes.length > 0;
+}
+
+// ─── Security Policy Category Filter Options ────────────────────────
+
+export const SECURITY_CATEGORY_OPTIONS: FilterOption[] = [
+	{ id: 'antivirus', label: 'Antivirus' },
+	{ id: 'firewall', label: 'Firewall' },
+	{ id: 'diskEncryption', label: 'Disk Encryption' },
+	{ id: 'endpointDetectionAndResponse', label: 'EDR' },
+	{ id: 'attackSurfaceReduction', label: 'Attack Surface Reduction' },
+	{ id: 'accountProtection', label: 'Account Protection' }
+];
+
+const SECURITY_CATEGORY_TO_TEMPLATE_FAMILY: Record<string, string> = {
+	antivirus: 'endpointSecurityAntivirus',
+	firewall: 'endpointSecurityFirewall',
+	diskEncryption: 'endpointSecurityDiskEncryption',
+	endpointDetectionAndResponse: 'endpointSecurityEndpointDetectionAndResponse',
+	attackSurfaceReduction: 'endpointSecurityAttackSurfaceReduction',
+	accountProtection: 'endpointSecurityAccountProtection'
+};
+
+// ─── Security Policy Filter Predicate ───────────────────────────────
+
+export function filterSecurityPolicies(
+	policies: ConfigurationPolicy[],
+	options: {
+		search?: string;
+		categories?: string[];
+		assignmentStatus?: AssignmentStatus;
+	}
+): ConfigurationPolicy[] {
+	let result = policies;
+
+	const q = options.search?.trim().toLowerCase();
+	if (q) {
+		result = result.filter((p) => p.name.toLowerCase().includes(q));
+	}
+
+	if (options.categories && options.categories.length > 0) {
+		const familySet = new Set(
+			options.categories.map((c) => SECURITY_CATEGORY_TO_TEMPLATE_FAMILY[c]).filter(Boolean)
+		);
+		result = result.filter((p) => {
+			const family = p.templateReference?.templateFamily;
+			return family ? familySet.has(family) : false;
+		});
+	}
+
+	if (options.assignmentStatus === 'assigned') {
+		result = result.filter((p) => p.isAssigned);
+	} else if (options.assignmentStatus === 'unassigned') {
+		result = result.filter((p) => !p.isAssigned);
+	}
+
+	return result;
+}
+
+export function hasActiveSecurityFilters(
+	categories: string[],
+	assignmentStatus: AssignmentStatus
+): boolean {
+	return categories.length > 0 || assignmentStatus !== 'all';
 }

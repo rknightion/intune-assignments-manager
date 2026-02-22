@@ -4,6 +4,7 @@ import type {
 	MobileAppInstallSummary,
 	IntuneReportResponse,
 	AppInstallSummaryRow,
+	AppDeviceInstallStatusRow,
 	DeviceConfigurationDeviceStatus,
 	DeviceConfigurationDeviceOverview,
 	DeviceComplianceDeviceStatus,
@@ -42,10 +43,12 @@ async function fetchAllReportRows(
 	client: GraphClient,
 	endpoint: string,
 	body: Record<string, unknown>,
-	pageSize = 500
+	pageSize = 500,
+	version?: 'beta' | 'v1.0'
 ): Promise<IntuneReportResponse> {
+	const opts = version ? { method: 'POST' as const, version } : { method: 'POST' as const };
 	const firstPage = await client.request<IntuneReportResponse>(endpoint, {
-		method: 'POST',
+		...opts,
 		body: { ...body, skip: 0, top: pageSize }
 	});
 
@@ -56,7 +59,7 @@ async function fetchAllReportRows(
 	let skip = pageSize;
 	while (skip < firstPage.TotalRowCount) {
 		const page = await client.request<IntuneReportResponse>(endpoint, {
-			method: 'POST',
+			...opts,
 			body: { ...body, skip, top: pageSize }
 		});
 		allValues.push(...page.Values);
@@ -144,6 +147,55 @@ export async function getAppInstallSummary(
 	};
 }
 
+// ─── Per-Device App Install Status (Reports API) ────────────────────
+
+export async function getAppDeviceInstallStatuses(
+	client: GraphClient,
+	appId: string
+): Promise<AppDeviceInstallStatusRow[]> {
+	const response = await fetchAllReportRows(
+		client,
+		'/deviceManagement/reports/microsoft.graph.retrieveDeviceAppInstallationStatusReport',
+		{
+			select: [
+				'DeviceName',
+				'DeviceId',
+				'UserName',
+				'UserPrincipalName',
+				'Platform',
+				'AppVersion',
+				'InstallState',
+				'InstallStateDetail',
+				'AppInstallState',
+				'AppInstallStateDetails',
+				'ErrorCode',
+				'HexErrorCode',
+				'LastModifiedDateTime'
+			],
+			filter: `(ApplicationId eq '${appId}')`,
+			orderBy: []
+		},
+		50,
+		'v1.0'
+	);
+
+	return parseReportRows<AppDeviceInstallStatusRow>(response, {
+		DeviceName: 'deviceName',
+		DeviceId: 'deviceId',
+		UserName: 'userName',
+		UserPrincipalName: 'userPrincipalName',
+		Platform: 'platform',
+		AppVersion: 'appVersion',
+		InstallState: 'installState',
+		InstallStateDetail: 'installStateDetail',
+		AppInstallState: 'appInstallState',
+		AppInstallStateDetails: 'appInstallStateDetails',
+		ErrorCode: 'errorCode',
+		HexErrorCode: 'hexErrorCode',
+		LastModifiedDateTime: 'lastModifiedDateTime'
+	});
+}
+
 // ─── Device Configuration Status ────────────────────────────────────
 
 export async function getConfigDeviceStatuses(
@@ -173,6 +225,19 @@ export async function getConfigStatusOverview(
 }
 
 // ─── Compliance Policy Status ───────────────────────────────────────
+
+export async function getComplianceStatusOverview(
+	client: GraphClient,
+	policyId: string
+): Promise<DeviceConfigurationDeviceOverview> {
+	const response = await client.request<DeviceConfigurationDeviceOverview>(
+		`/deviceManagement/deviceCompliancePolicies/${policyId}/deviceStatusOverview`,
+		V1
+	);
+	return deviceConfigurationDeviceOverviewSchema.parse(
+		response
+	) as DeviceConfigurationDeviceOverview;
+}
 
 export async function getComplianceDeviceStatuses(
 	client: GraphClient,

@@ -16,7 +16,7 @@ export interface DiffEntry {
 export interface ItemDiff {
 	itemId: string;
 	itemName: string;
-	itemType: 'app' | 'profile';
+	itemType: 'app' | 'profile' | 'compliance' | 'security';
 	entries: DiffEntry[];
 }
 

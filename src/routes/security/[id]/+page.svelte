@@ -7,39 +7,30 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Tabs from '$lib/components/ui/Tabs.svelte';
-	import SearchInput from '$lib/components/ui/SearchInput.svelte';
-	import StatusSummaryCard from '$lib/components/status/StatusSummaryCard.svelte';
-	import DeviceStatusRow from '$lib/components/status/DeviceStatusRow.svelte';
 	import AssignmentRow from '$lib/components/assignments/AssignmentRow.svelte';
 	import AssignmentEditor from '$lib/components/assignments/AssignmentEditor.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import CsvExportButton from '$lib/components/csv/CsvExportButton.svelte';
-	import { Layers, Plus } from 'lucide-svelte';
+	import { Layers, Plus, Swords, Monitor } from 'lucide-svelte';
 	import { getGraphClient } from '$lib/stores/graph';
 	import {
 		getConfigPolicy,
 		getConfigAssignments,
-		assignConfigPolicy
-	} from '$lib/graph/configurations';
+		assignConfigPolicy,
+		getSecurityPolicySettings
+	} from '$lib/graph/security';
 	import { getTargetKey } from '$lib/graph/merge';
 	import { resolveGroupNames } from '$lib/stores/group-cache';
 	import { ensureFiltersLoaded, getFilterById } from '$lib/stores/filter-cache';
-	import { getConfigStatusOverview, getConfigDeviceStatuses } from '$lib/graph/status';
 	import { toFriendlyMessage } from '$lib/graph/errors';
-	import { getProfileTypeInfo } from '$lib/utils/profile-types';
+	import { getSecurityCategoryInfo } from '$lib/utils/security-types';
+	import { getPlatformLabel } from '$lib/utils/profile-types';
 	import { exportAssignmentsCsv, type ExportableAssignment } from '$lib/utils/csv-assignments';
-	import type {
-		ConfigurationPolicy,
-		ConfigurationPolicyAssignment,
-		AssignmentTarget,
-		AssignmentIntent
-	} from '$lib/types/graph';
-	import type {
-		DeviceConfigurationDeviceOverview,
-		DeviceConfigurationDeviceStatus
-	} from '$lib/types/status';
+	import type { ConfigurationPolicy, ConfigurationPolicyAssignment } from '$lib/types/graph';
+	import type { AssignmentTarget, AssignmentIntent } from '$lib/types/graph';
+	import type { PolicySettingInstance } from '$lib/types/security';
 
-	let profile = $state<ConfigurationPolicy | null>(null);
+	let policy = $state<ConfigurationPolicy | null>(null);
 	let assignments = $state<ConfigurationPolicyAssignment[]>([]);
 	let groupNames = $state<Map<string, string>>(new Map());
 	let loading = $state(false);
@@ -50,13 +41,11 @@
 	// Tab state
 	let activeTab = $state('assignments');
 
-	// Status tab state
-	let statusOverview = $state<DeviceConfigurationDeviceOverview | null>(null);
-	let deviceStatuses = $state<DeviceConfigurationDeviceStatus[]>([]);
-	let statusLoading = $state(false);
-	let statusError = $state<string | null>(null);
-	let statusSearch = $state('');
-	let statusLoaded = $state(false);
+	// Settings tab state
+	let settings = $state<PolicySettingInstance[]>([]);
+	let settingsLoading = $state(false);
+	let settingsError = $state<string | null>(null);
+	let settingsLoaded = $state(false);
 
 	// Editor state
 	let editorOpen = $state(false);
@@ -67,8 +56,10 @@
 	let deleteDialogOpen = $state(false);
 	let deletingAssignment = $state<ConfigurationPolicyAssignment | null>(null);
 
-	const profileTypeInfo = $derived(
-		profile ? getProfileTypeInfo(profile.platforms, profile.technologies) : null
+	const categoryInfo = $derived(
+		policy
+			? getSecurityCategoryInfo(policy.templateReference?.templateFamily ?? '')
+			: undefined
 	);
 	const hasAssignments = $derived(assignments.length > 0);
 
@@ -106,7 +97,7 @@
 				ensureFiltersLoaded(client)
 			]);
 
-			profile = policyData;
+			policy = policyData;
 			assignments = assignmentData;
 
 			const groupIds = assignmentData
@@ -169,7 +160,7 @@
 		target: AssignmentTarget,
 		_: AssignmentIntent | null
 	): Promise<void> {
-		if (!profile) return;
+		if (!policy) return;
 		editorOpen = false;
 		saving = true;
 		saveError = null;
@@ -191,7 +182,7 @@
 				updated.push(newAssignment);
 			}
 
-			await assignConfigPolicy(getGraphClient(), profile.id, updated);
+			await assignConfigPolicy(getGraphClient(), policy.id, updated);
 			await refreshAssignments();
 		} catch (err) {
 			saveError = toFriendlyMessage(err);
@@ -201,7 +192,7 @@
 	}
 
 	async function handleDelete(): Promise<void> {
-		if (!profile || !deletingAssignment) return;
+		if (!policy || !deletingAssignment) return;
 		deleteDialogOpen = false;
 		saving = true;
 		saveError = null;
@@ -210,7 +201,7 @@
 			const key = getTargetKey(deletingAssignment.target);
 			const updated = assignments.filter((a) => getTargetKey(a.target) !== key);
 
-			await assignConfigPolicy(getGraphClient(), profile.id, updated);
+			await assignConfigPolicy(getGraphClient(), policy.id, updated);
 			await refreshAssignments();
 		} catch (err) {
 			saveError = toFriendlyMessage(err);
@@ -236,92 +227,86 @@
 	}
 
 	function exportCsv(): string {
-		if (!profile) return '';
+		if (!policy) return '';
 		const exportable: ExportableAssignment[] = assignments.map((a) => ({
-			itemType: 'profile',
-			itemName: profile!.name,
-			itemId: profile!.id,
+			itemType: 'security' as ExportableAssignment['itemType'],
+			itemName: policy!.name,
+			itemId: policy!.id,
 			target: a.target,
-			intent: a.intent
+			intent: null
 		}));
 		return exportAssignmentsCsv(exportable, groupNames, buildFilterNames());
 	}
 
-	// ─── Status tab ───────────────────────────────────────────────────
+	// ─── Settings tab ─────────────────────────────────────────────────
 
-	function getConfigStatusVariant(
-		status: string
-	): 'required' | 'available' | 'uninstall' | 'neutral' {
-		switch (status) {
-			case 'compliant':
-			case 'remediated':
-				return 'required';
-			case 'error':
-			case 'nonCompliant':
-				return 'uninstall';
-			case 'conflict':
-				return 'available';
-			default:
-				return 'neutral';
-		}
+	function formatSettingName(definitionId: string): string {
+		// Extract the last segment after the last underscore or dot
+		const lastPart = definitionId.split('_').pop() ?? definitionId;
+		// Convert camelCase to spaces and capitalize
+		return lastPart
+			.replace(/([a-z])([A-Z])/g, '$1 $2')
+			.replace(/[._]/g, ' ')
+			.replace(/^\w/, (c) => c.toUpperCase());
 	}
 
-	function getConfigStatusLabel(status: string): string {
-		switch (status) {
-			case 'compliant':
-				return 'Compliant';
-			case 'remediated':
-				return 'Remediated';
-			case 'nonCompliant':
-				return 'Non-Compliant';
-			case 'error':
-				return 'Error';
-			case 'conflict':
-				return 'Conflict';
-			case 'notApplicable':
-				return 'Not Applicable';
-			case 'notAssigned':
-				return 'Not Assigned';
-			default:
-				return 'Unknown';
+	function extractSettingValue(instance: PolicySettingInstance['settingInstance']): string {
+		const type = instance['@odata.type'];
+
+		if (type.includes('choiceSettingInstance')) {
+			const choice = instance['choiceSettingValue'] as
+				| { value?: string; children?: unknown[] }
+				| undefined;
+			if (choice?.value) {
+				const lastPart = choice.value.split('_').pop() ?? choice.value;
+				return lastPart.replace(/([a-z])([A-Z])/g, '$1 $2');
+			}
 		}
+
+		if (type.includes('simpleSettingInstance')) {
+			const simple = instance['simpleSettingValue'] as
+				| { value?: string | number | boolean }
+				| undefined;
+			if (simple?.value !== undefined) {
+				return String(simple.value);
+			}
+		}
+
+		if (type.includes('groupSettingCollectionInstance')) {
+			const collection = instance['groupSettingCollectionValue'] as unknown[] | undefined;
+			if (collection) {
+				return `${collection.length} setting group(s)`;
+			}
+		}
+
+		if (type.includes('simpleSettingCollectionInstance')) {
+			const collection = instance['simpleSettingCollectionValue'] as unknown[] | undefined;
+			if (collection) {
+				return `${collection.length} value(s)`;
+			}
+		}
+
+		return 'Configured';
 	}
 
-	const filteredDeviceStatuses = $derived(
-		deviceStatuses.filter((s) => {
-			if (!statusSearch) return true;
-			const q = statusSearch.toLowerCase();
-			return (
-				s.deviceDisplayName.toLowerCase().includes(q) ||
-				(s.userName ?? '').toLowerCase().includes(q)
-			);
-		})
-	);
-
-	async function fetchStatusData(): Promise<void> {
+	async function fetchSettings(): Promise<void> {
 		const id = page.params.id!;
-		statusLoading = true;
-		statusError = null;
+		settingsLoading = true;
+		settingsError = null;
 		try {
 			const client = getGraphClient();
-			const [overview, statuses] = await Promise.all([
-				getConfigStatusOverview(client, id),
-				getConfigDeviceStatuses(client, id)
-			]);
-			statusOverview = overview;
-			deviceStatuses = statuses;
-			statusLoaded = true;
-		} catch {
-			statusError =
-				'Device status is not available for Settings Catalog profiles. Status tracking is available for legacy device configuration profiles.';
+			settings = await getSecurityPolicySettings(client, id);
+			settingsLoaded = true;
+		} catch (err) {
+			settingsError = toFriendlyMessage(err);
 		} finally {
-			statusLoading = false;
+			settingsLoading = false;
 		}
 	}
 
 	$effect(() => {
-		if (activeTab === 'status' && !statusLoaded && !statusLoading) {
-			fetchStatusData();
+		if (activeTab === 'settings' && !settingsLoaded && !settingsLoading) {
+			fetchSettings();
 		}
 	});
 </script>
@@ -363,35 +348,38 @@
 					<Skeleton height="3rem" rounded="lg" />
 				{/each}
 			</div>
-		{:else if profile}
-			<!-- Redesigned info panel -->
+		{:else if policy}
+			{@const CatIcon = categoryInfo?.icon ?? Swords}
+
+			<!-- Info panel -->
 			<div class="panel-raised mb-6">
 				<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div class="flex items-center gap-4">
-						{#if profileTypeInfo}
-							{@const TypeIcon = profileTypeInfo.icon}
-							<div
-								class="bg-accent-light flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
-							>
-								<TypeIcon size={24} class="text-accent" />
-							</div>
-						{/if}
+						<div
+							class="bg-accent-light flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+						>
+							<CatIcon size={24} class="text-accent" />
+						</div>
 						<div>
 							<h1 class="text-ink text-2xl font-bold tracking-tight">
-								{profile.name}
+								{policy.name}
 							</h1>
 							<p class="text-ink-faint text-sm">
-								{profile.settingCount} setting{profile.settingCount !== 1 ? 's' : ''}
+								{categoryInfo?.label ?? 'Endpoint Security'}
 							</p>
 						</div>
 					</div>
 					<div class="flex gap-2">
 						<CsvExportButton
 							getCsvContent={exportCsv}
-							filename="{profile?.name ?? 'profile'}-assignments.csv"
+							filename="{policy?.name ?? 'security-policy'}-assignments.csv"
 							disabled={assignments.length === 0}
 						/>
-						<Button variant="primary" icon={Layers} href="/assign?profileId={profile?.id}">
+						<Button
+							variant="primary"
+							icon={Layers}
+							href="/assign?securityPolicyId={policy?.id}"
+						>
 							Edit in Bulk Assign
 						</Button>
 					</div>
@@ -399,17 +387,17 @@
 
 				<!-- Metadata pills -->
 				<div class="mt-4 flex flex-wrap gap-2">
-					{#if profileTypeInfo}
-						<Badge variant="info">{profileTypeInfo.label}</Badge>
-						<Badge variant="outline">{profileTypeInfo.technology}</Badge>
+					{#if categoryInfo}
+						<Badge variant="info">{categoryInfo.label}</Badge>
 					{/if}
+					<Badge variant="outline">{getPlatformLabel(policy.platforms)}</Badge>
 					<Badge variant={hasAssignments ? 'required' : 'neutral'} dot>
 						{hasAssignments ? 'Assigned' : 'Unassigned'}
 					</Badge>
 				</div>
 
-				{#if profile.description}
-					<p class="text-ink-faint mt-3 text-sm">{profile.description}</p>
+				{#if policy.description}
+					<p class="text-ink-faint mt-3 text-sm">{policy.description}</p>
 				{/if}
 			</div>
 
@@ -417,6 +405,7 @@
 				<Tabs
 					tabs={[
 						{ id: 'assignments', label: 'Assignments' },
+						{ id: 'settings', label: 'Settings' },
 						{ id: 'status', label: 'Device Status' }
 					]}
 					active={activeTab}
@@ -440,7 +429,7 @@
 
 				{#if assignments.length === 0}
 					<EmptyState
-						icon={Layers}
+						icon={Swords}
 						title="No assignments yet"
 						description="Add an assignment or use Bulk Assign to get started."
 					>
@@ -463,7 +452,7 @@
 							<AssignmentRow
 								targetName={resolveTargetName(assignment.target)}
 								targetType={assignment.target['@odata.type']}
-								intent={assignment.intent}
+								intent={null}
 								filterName={resolveFilterName(assignment.target)}
 								filterType={assignment.target.deviceAndAppManagementAssignmentFilterType}
 								isExclusion={assignment.target['@odata.type'] ===
@@ -474,87 +463,54 @@
 						{/each}
 					</div>
 				{/if}
-			{:else if activeTab === 'status'}
-				{#if statusLoading}
+			{:else if activeTab === 'settings'}
+				{#if settingsLoading}
 					<div class="space-y-4">
-						<Skeleton height="8rem" rounded="lg" />
-						{#each Array(4) as _, i (i)}
+						{#each Array(6) as _, i (i)}
 							<Skeleton height="3rem" rounded="lg" />
 						{/each}
 					</div>
-				{:else if statusError}
-					<EmptyState icon={Layers} title="Status unavailable" description={statusError} />
-				{:else if statusOverview}
-					<div class="mb-4">
-						<StatusSummaryCard
-							title="Deployment Overview"
-							segments={[
-								{
-									label: 'Success',
-									value: statusOverview.successCount,
-									color: 'bg-success'
-								},
-								{
-									label: 'Error',
-									value: statusOverview.errorCount,
-									color: 'bg-ember'
-								},
-								{
-									label: 'Failed',
-									value: statusOverview.failedCount,
-									color: 'bg-ember'
-								},
-								{
-									label: 'Pending',
-									value: statusOverview.pendingCount,
-									color: 'bg-warn'
-								},
-								{
-									label: 'Not Applicable',
-									value: statusOverview.notApplicableCount,
-									color: 'bg-muted'
-								}
-							]}
-							lastUpdated={statusOverview.lastUpdateDateTime}
-						/>
-					</div>
-
-					{#if deviceStatuses.length > 0}
-						<div class="mb-3">
-							<SearchInput placeholder="Filter by device or user..." bind:value={statusSearch} />
+				{:else if settingsError}
+					<ErrorState message={settingsError} onretry={fetchSettings} />
+				{:else if settings.length === 0}
+					<EmptyState
+						icon={Swords}
+						title="No settings"
+						description="This policy has no configured settings."
+					/>
+				{:else}
+					<div class="panel overflow-clip p-0">
+						<div
+							class="border-border bg-surface/95 text-muted sticky top-12 z-10 grid grid-cols-12 gap-2 border-b px-4 py-2 text-xs font-medium tracking-wide uppercase backdrop-blur-sm"
+						>
+							<div class="col-span-7">Setting</div>
+							<div class="col-span-5">Value</div>
 						</div>
-						<div class="panel overflow-clip p-0">
-							<div
-								class="border-border bg-surface/95 text-muted sticky top-12 z-10 grid grid-cols-12 gap-2 border-b px-4 py-2 text-xs font-medium tracking-wide uppercase backdrop-blur-sm"
-							>
-								<div class="col-span-4">Device</div>
-								<div class="col-span-3">Status</div>
-								<div class="col-span-3">Last Reported</div>
-								<div class="col-span-2">User</div>
-							</div>
-							{#each filteredDeviceStatuses as status (status.id)}
-								<DeviceStatusRow
-									deviceName={status.deviceDisplayName}
-									userName={status.userName ?? ''}
-									statusVariant={getConfigStatusVariant(status.status)}
-									statusLabel={getConfigStatusLabel(status.status)}
-									lastReported={status.lastReportedDateTime}
-								/>
-							{/each}
-							{#if filteredDeviceStatuses.length === 0}
-								<div class="px-4 py-8 text-center">
-									<p class="text-muted text-sm">No devices match your search.</p>
+						{#each settings as setting, i (`${setting.id}-${i}`)}
+							<div class="border-border grid grid-cols-12 gap-2 border-b px-4 py-3 last:border-b-0">
+								<div class="col-span-7">
+									<p class="text-ink text-sm font-medium">
+										{formatSettingName(setting.settingInstance.settingDefinitionId)}
+									</p>
+									<p class="text-muted truncate text-xs">
+										{setting.settingInstance.settingDefinitionId}
+									</p>
 								</div>
-							{/if}
-						</div>
-					{:else}
-						<EmptyState
-							icon={Layers}
-							title="No device statuses"
-							description="No device deployment status data is available for this profile."
-						/>
-					{/if}
+								<div class="col-span-5">
+									<p class="text-ink text-sm">
+										{extractSettingValue(setting.settingInstance)}
+									</p>
+								</div>
+							</div>
+						{/each}
+					</div>
 				{/if}
+			{:else if activeTab === 'status'}
+				<EmptyState
+					icon={Monitor}
+					title="Status unavailable"
+					description="Device status reporting is not available for endpoint security policies managed through the Settings Catalog."
+				/>
 			{/if}
 		{/if}
 	</div>
@@ -565,8 +521,10 @@
 		mode={editorMode}
 		itemKind="profile"
 		existingTarget={editingAssignment?.target}
-		existingIntent={editingAssignment?.intent as AssignmentIntent | null | undefined}
-		existingTargetName={editingAssignment ? resolveTargetName(editingAssignment.target) : undefined}
+		existingIntent={null}
+		existingTargetName={editingAssignment
+			? resolveTargetName(editingAssignment.target)
+			: undefined}
 		onSave={handleEditorSave}
 		onCancel={() => (editorOpen = false)}
 	/>

@@ -10,7 +10,7 @@ import { getTargetKey, buildAssignmentTarget, buildExclusionTarget } from '$lib/
 export interface DiffItemParams {
 	itemId: string;
 	itemName: string;
-	itemType: 'app' | 'profile';
+	itemType: 'app' | 'profile' | 'compliance' | 'security';
 	currentAssignments: (MobileAppAssignment | ConfigurationPolicyAssignment)[];
 	newGroups: GroupTarget[];
 	newExclusionGroups: GroupTarget[];

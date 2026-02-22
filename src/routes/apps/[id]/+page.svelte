@@ -7,7 +7,9 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Tabs from '$lib/components/ui/Tabs.svelte';
+	import SearchInput from '$lib/components/ui/SearchInput.svelte';
 	import StatusSummaryCard from '$lib/components/status/StatusSummaryCard.svelte';
+	import DeviceStatusRow from '$lib/components/status/DeviceStatusRow.svelte';
 	import AssignmentRow from '$lib/components/assignments/AssignmentRow.svelte';
 	import AssignmentEditor from '$lib/components/assignments/AssignmentEditor.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
@@ -15,7 +17,7 @@
 	import { Layers, Monitor, Plus } from 'lucide-svelte';
 	import { getGraphClient } from '$lib/stores/graph';
 	import { getApp, getAppAssignments, assignApp } from '$lib/graph/apps';
-	import { getAppInstallSummary } from '$lib/graph/status';
+	import { getAppInstallSummary, getAppDeviceInstallStatuses } from '$lib/graph/status';
 	import { getTargetKey } from '$lib/graph/merge';
 	import { resolveGroupNames } from '$lib/stores/group-cache';
 	import { ensureFiltersLoaded, getFilterById } from '$lib/stores/filter-cache';
@@ -28,7 +30,7 @@
 		AssignmentTarget,
 		AssignmentIntent
 	} from '$lib/types/graph';
-	import type { MobileAppInstallSummary } from '$lib/types/status';
+	import type { MobileAppInstallSummary, AppDeviceInstallStatusRow } from '$lib/types/status';
 
 	let app = $state<MobileApp | null>(null);
 	let assignments = $state<MobileAppAssignment[]>([]);
@@ -43,9 +45,13 @@
 
 	// Status tab state
 	let installSummary = $state<MobileAppInstallSummary | null>(null);
+	let deviceStatuses = $state<AppDeviceInstallStatusRow[]>([]);
 	let statusLoading = $state(false);
 	let statusError = $state<string | null>(null);
+	let deviceStatusError = $state<string | null>(null);
 	let statusLoaded = $state(false);
+	let statusSearch = $state('');
+	let statusFilter = $state<'all' | 'failed'>('all');
 
 	// Editor state
 	let editorOpen = $state(false);
@@ -238,13 +244,99 @@
 
 	// ─── Status tab ───────────────────────────────────────────────────
 
+	// Reports API returns short codes for AppInstallState (e.g. "1", "2", "5")
+	// Map them to human-readable labels and badge variants
+	const installStateLabels: Record<string, string> = {
+		'1': 'Installed',
+		'2': 'Failed',
+		'3': 'Not Installed',
+		'4': 'Pending',
+		'5': 'Not Applicable',
+		'99': 'Unknown'
+	};
+
+	const installStateVariants: Record<string, 'required' | 'available' | 'uninstall' | 'neutral'> =
+		{
+			'1': 'required',
+			'2': 'uninstall',
+			'3': 'neutral',
+			'4': 'available',
+			'5': 'neutral',
+			'99': 'neutral'
+		};
+
+	function getInstallStatusVariant(
+		row: AppDeviceInstallStatusRow
+	): 'required' | 'available' | 'uninstall' | 'neutral' {
+		const code = String(row.appInstallState || row.installState || '');
+		if (installStateVariants[code]) return installStateVariants[code];
+		// Fallback: try matching human-readable strings
+		const state = code.toLowerCase();
+		if (state.includes('installed') && !state.includes('not') && !state.includes('failed'))
+			return 'required';
+		if (state.includes('fail') || state.includes('error')) return 'uninstall';
+		if (state.includes('pending')) return 'available';
+		return 'neutral';
+	}
+
+	function getInstallStatusLabel(row: AppDeviceInstallStatusRow): string {
+		const code = String(row.appInstallState || row.installState || '');
+		return installStateLabels[code] || code || 'Unknown';
+	}
+
+	function getInstallErrorDetail(row: AppDeviceInstallStatusRow): string | null {
+		const parts: string[] = [];
+		if (row.errorCode && Number(row.errorCode) !== 0) {
+			parts.push(`Error: ${row.hexErrorCode || row.errorCode}`);
+		}
+		if (row.appInstallStateDetails) {
+			parts.push(row.appInstallStateDetails);
+		} else if (row.installStateDetail) {
+			parts.push(row.installStateDetail);
+		}
+		return parts.length > 0 ? parts.join('\n') : null;
+	}
+
+	const filteredDeviceStatuses = $derived(
+		deviceStatuses.filter((s) => {
+			if (statusFilter === 'failed') {
+				const variant = getInstallStatusVariant(s);
+				if (variant !== 'uninstall') return false;
+			}
+			if (!statusSearch) return true;
+			const q = statusSearch.toLowerCase();
+			return (
+				(s.deviceName ?? '').toLowerCase().includes(q) ||
+				(s.userName ?? '').toLowerCase().includes(q)
+			);
+		})
+	);
+
 	async function fetchStatusData(): Promise<void> {
 		const id = page.params.id!;
 		statusLoading = true;
 		statusError = null;
+		deviceStatusError = null;
 		try {
 			const client = getGraphClient();
-			installSummary = await getAppInstallSummary(client, id);
+			const [summaryResult, devicesResult] = await Promise.allSettled([
+				getAppInstallSummary(client, id),
+				getAppDeviceInstallStatuses(client, id)
+			]);
+
+			if (summaryResult.status === 'fulfilled') {
+				installSummary = summaryResult.value;
+			} else {
+				statusError = toFriendlyMessage(summaryResult.reason);
+			}
+
+			if (devicesResult.status === 'fulfilled') {
+				deviceStatuses = devicesResult.value;
+			} else {
+				deviceStatusError =
+					'Per-device install status is not available. This report endpoint may not be supported in your tenant.';
+			}
+
 			statusLoaded = true;
 		} catch (err) {
 			statusError = toFriendlyMessage(err);
@@ -416,46 +508,109 @@
 							<Skeleton height="3rem" rounded="lg" />
 						{/each}
 					</div>
-				{:else if statusError}
+				{:else if statusError && !installSummary}
 					<ErrorState message={statusError} onretry={fetchStatusData} />
 				{:else}
 					{#if installSummary}
-						<StatusSummaryCard
-							title="Install Summary"
-							segments={[
-								{
-									label: 'Installed',
-									value: installSummary.installedDeviceCount,
-									color: 'bg-success'
-								},
-								{
-									label: 'Failed',
-									value: installSummary.failedDeviceCount,
-									color: 'bg-ember'
-								},
-								{
-									label: 'Pending',
-									value: installSummary.pendingInstallDeviceCount,
-									color: 'bg-warn'
-								},
-								{
-									label: 'Not Applicable',
-									value: installSummary.notApplicableDeviceCount,
-									color: 'bg-muted'
-								},
-								{
-									label: 'Not Installed',
-									value: installSummary.notInstalledDeviceCount,
-									color: 'bg-canvas-deep'
-								}
-							]}
-						/>
+						<div class="mb-4">
+							<StatusSummaryCard
+								title="Install Summary"
+								segments={[
+									{
+										label: 'Installed',
+										value: installSummary.installedDeviceCount,
+										color: 'bg-success'
+									},
+									{
+										label: 'Failed',
+										value: installSummary.failedDeviceCount,
+										color: 'bg-ember'
+									},
+									{
+										label: 'Pending',
+										value: installSummary.pendingInstallDeviceCount,
+										color: 'bg-warn'
+									},
+									{
+										label: 'Not Applicable',
+										value: installSummary.notApplicableDeviceCount,
+										color: 'bg-muted'
+									},
+									{
+										label: 'Not Installed',
+										value: installSummary.notInstalledDeviceCount,
+										color: 'bg-canvas-deep'
+									}
+								]}
+							/>
+						</div>
 					{:else}
 						<EmptyState
 							icon={Monitor}
 							title="No install data"
 							description="No install status data is available for this app."
 						/>
+					{/if}
+
+					{#if deviceStatusError}
+						<EmptyState
+							icon={Monitor}
+							title="Per-device status unavailable"
+							description={deviceStatusError}
+						/>
+					{:else if deviceStatuses.length > 0}
+						<div class="mb-3 flex items-center gap-3">
+							<div class="flex-1">
+								<SearchInput
+									placeholder="Filter by device or user..."
+									bind:value={statusSearch}
+								/>
+							</div>
+							<div class="border-border flex overflow-hidden rounded-lg border text-sm">
+								<button
+									class="px-3 py-2 transition-colors {statusFilter === 'all'
+										? 'bg-accent text-white'
+										: 'bg-surface text-ink hover:bg-canvas-deep'}"
+									onclick={() => (statusFilter = 'all')}
+								>
+									All
+								</button>
+								<button
+									class="border-border border-l px-3 py-2 transition-colors {statusFilter ===
+									'failed'
+										? 'bg-ember text-white'
+										: 'bg-surface text-ink hover:bg-canvas-deep'}"
+									onclick={() => (statusFilter = 'failed')}
+								>
+									Failed Only
+								</button>
+							</div>
+						</div>
+						<div class="panel overflow-clip p-0">
+							<div
+								class="border-border bg-surface/95 text-muted sticky top-12 z-10 grid grid-cols-12 gap-2 border-b px-4 py-2 text-xs font-medium tracking-wide uppercase backdrop-blur-sm"
+							>
+								<div class="col-span-4">Device</div>
+								<div class="col-span-3">Status</div>
+								<div class="col-span-3">Last Reported</div>
+								<div class="col-span-2">Error</div>
+							</div>
+							{#each filteredDeviceStatuses as status, i (`${status.deviceId}-${i}`)}
+								<DeviceStatusRow
+									deviceName={status.deviceName || 'Unknown Device'}
+									userName={status.userName || ''}
+									statusVariant={getInstallStatusVariant(status)}
+									statusLabel={getInstallStatusLabel(status)}
+									lastReported={status.lastModifiedDateTime}
+									errorDetail={getInstallErrorDetail(status)}
+								/>
+							{/each}
+							{#if filteredDeviceStatuses.length === 0}
+								<div class="px-4 py-8 text-center">
+									<p class="text-muted text-sm">No devices match your search.</p>
+								</div>
+							{/if}
+						</div>
 					{/if}
 				{/if}
 			{/if}
