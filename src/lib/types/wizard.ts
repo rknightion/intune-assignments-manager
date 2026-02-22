@@ -1,0 +1,105 @@
+import type { MobileApp, ConfigurationPolicy, AssignmentIntent } from './graph';
+
+// ─── Group Target ──────────────────────────────────────────────────
+
+export type GroupTargetType = 'group' | 'allDevices' | 'allUsers';
+
+export interface GroupTarget {
+	type: GroupTargetType;
+	groupId?: string;
+	displayName: string;
+}
+
+// ─── Filter Configuration ──────────────────────────────────────────
+
+export interface FilterConfig {
+	filterId: string;
+	filterName: string;
+	filterType: 'include' | 'exclude';
+}
+
+// ─── Wizard State ──────────────────────────────────────────────────
+
+export interface WizardState {
+	selectedApps: MobileApp[];
+	selectedProfiles: ConfigurationPolicy[];
+	selectedGroups: GroupTarget[];
+	intent: AssignmentIntent;
+	filterConfig: FilterConfig | null;
+	exclusionGroups: GroupTarget[];
+}
+
+export function createDefaultWizardState(): WizardState {
+	return {
+		selectedApps: [],
+		selectedProfiles: [],
+		selectedGroups: [],
+		intent: 'required',
+		filterConfig: null,
+		exclusionGroups: []
+	};
+}
+
+// ─── Step Definitions ──────────────────────────────────────────────
+
+export type WizardStep = 'items' | 'groups' | 'configure' | 'review' | 'results';
+
+export interface StepDefinition {
+	id: WizardStep;
+	label: string;
+	shortLabel: string;
+}
+
+export const WIZARD_STEPS: StepDefinition[] = [
+	{ id: 'items', label: 'Select Items', shortLabel: 'Items' },
+	{ id: 'groups', label: 'Select Groups', shortLabel: 'Groups' },
+	{ id: 'configure', label: 'Configure', shortLabel: 'Config' },
+	{ id: 'review', label: 'Review', shortLabel: 'Review' },
+	{ id: 'results', label: 'Results', shortLabel: 'Done' }
+];
+
+// ─── Conflict Detection ────────────────────────────────────────────
+
+export type ConflictResolution = 'update' | 'skip';
+
+export interface AssignmentConflict {
+	itemId: string;
+	itemName: string;
+	itemType: 'app' | 'profile';
+	targetDisplayName: string;
+	targetKey: string;
+	existingIntent: string | null;
+	existingFilterId: string | null;
+	newIntent: AssignmentIntent;
+	newFilterConfig: FilterConfig | null;
+	resolution: ConflictResolution;
+}
+
+// ─── Execution Types ───────────────────────────────────────────────
+
+export type AssignableItem =
+	| { kind: 'app'; id: string; displayName: string }
+	| { kind: 'profile'; id: string; displayName: string };
+
+export interface ConflictChoice {
+	itemId: string;
+	targetKey: string;
+	resolution: ConflictResolution;
+}
+
+export interface AssignmentResult {
+	itemId: string;
+	itemName: string;
+	itemKind: 'app' | 'profile';
+	status: 'success' | 'error';
+	error?: string;
+}
+
+export interface BulkProgress {
+	phase: 'fetching' | 'merging' | 'applying';
+	completed: number;
+	total: number;
+	currentItem?: string;
+}
+
+export type ProgressCallback = (progress: BulkProgress) => void;

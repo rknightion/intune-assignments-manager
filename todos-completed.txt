@@ -1,0 +1,972 @@
+================================================================================
+PHASE 1: PROJECT SCAFFOLDING [COMPLETED]
+================================================================================
+
+GOAL: Empty SvelteKit project configured for Cloudflare Pages deployment with
+      Tailwind CSS 4, TypeScript, and all dev tooling.
+
+STEPS:
+
+1.1  Initialize the SvelteKit project:
+     - Use `pnpm create svelte@latest` with the following options:
+       - Template: Skeleton project
+       - TypeScript: Yes
+       - ESLint: Yes
+       - Prettier: Yes
+       - Playwright: No (add later if needed)
+     - Or manually scaffold — the result should be a working SvelteKit app
+
+1.2  Install and configure the Cloudflare adapter:
+     - `pnpm add -D @sveltejs/adapter-cloudflare`
+     - Update svelte.config.js:
+       ```
+       import adapter from '@sveltejs/adapter-cloudflare';
+       import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+       export default { preprocess: vitePreprocess(), kit: { adapter: adapter() } };
+       ```
+
+1.3  Install and configure Tailwind CSS 4:
+     - `pnpm add -D tailwindcss @tailwindcss/vite`
+     - Add to vite.config.ts plugins array: `tailwindcss()`
+     - Create src/app.css with `@import 'tailwindcss';`
+     - Import app.css in src/routes/+layout.svelte
+
+1.4  Install additional dependencies:
+     - `pnpm add @azure/msal-browser zod lucide-svelte`
+     - `pnpm add -D prettier-plugin-svelte prettier-plugin-tailwindcss`
+     - `pnpm add @fontsource/geist-sans @fontsource-variable/jetbrains-mono`
+
+1.5  Configure TypeScript (tsconfig.json):
+     - Target: ES2022
+     - Module: ES2022
+     - Strict: true
+     - Ensure SvelteKit path aliases work ($lib, etc.)
+
+1.6  Create initial folder structure under src/:
+     ```
+     src/
+       app.html          (SvelteKit HTML template)
+       app.css           (Tailwind + design tokens)
+       app.d.ts          (global type declarations)
+       lib/
+         auth/           (MSAL configuration and helpers)
+         graph/          (MS Graph API client and types)
+         components/
+           ui/           (reusable UI components)
+           assignments/  (assignment-specific components)
+         stores/         (Svelte stores for global state)
+         types/          (shared TypeScript types and Zod schemas)
+         utils/          (formatting, helpers)
+         server/         (server-only utilities for API routes)
+       routes/
+         +layout.svelte  (root layout with sidebar)
+         +page.svelte    (dashboard/home)
+         api/            (server API routes proxying to Graph)
+     ```
+
+1.7  Verify local development works:
+     - `pnpm dev` starts without errors
+     - Visit http://localhost:5173 and see the skeleton page
+
+FILES TO CREATE:
+- package.json (with all dependencies)
+- svelte.config.js (adapter-cloudflare)
+- vite.config.ts (tailwindcss plugin)
+- tsconfig.json
+- src/app.html
+- src/app.css
+- src/app.d.ts
+- src/routes/+layout.svelte
+- src/routes/+page.svelte
+
+================================================================================
+PHASE 2: DESIGN SYSTEM AND UI SHELL [COMPLETED]
+================================================================================
+
+GOAL: Establish the visual design system and app shell (sidebar navigation,
+      page layout, reusable UI primitives). This provides the foundation every
+      subsequent phase builds upon.
+
+DESIGN SYSTEM APPROACH:
+Follow the paperless-ngx-dedupe pattern — define semantic color tokens using
+Tailwind CSS 4's @theme directive with OKLCH color space. Create @utility
+directives for common patterns (panel, panel-inset, divider).
+
+STEPS:
+
+2.1  Define design tokens in src/app.css using @theme:
+     ```
+     @theme {
+       --color-canvas: oklch(0.97 0.005 90);
+       --color-canvas-deep: oklch(0.94 0.008 90);
+       --color-ink: oklch(0.2 0.02 260);
+       --color-ink-light: oklch(0.35 0.02 260);
+       --color-accent: oklch(0.55 0.18 250);       /* Blue family for Microsoft/Intune branding */
+       --color-accent-light: oklch(0.92 0.04 250);
+       --color-accent-hover: oklch(0.48 0.18 250);
+       --color-ember: oklch(0.55 0.2 25);           /* Red for destructive/uninstall */
+       --color-ember-light: oklch(0.92 0.05 25);
+       --color-success: oklch(0.55 0.15 155);       /* Green for required/installed */
+       --color-success-light: oklch(0.92 0.04 155);
+       --color-warn: oklch(0.7 0.15 85);            /* Yellow for available/pending */
+       --color-warn-light: oklch(0.94 0.04 85);
+       --color-surface: oklch(1 0 0);
+       --color-soft: oklch(0.88 0.01 260);
+       --color-muted: oklch(0.55 0.015 260);
+       --color-sidebar: oklch(0.18 0.025 260);
+       --color-sidebar-hover: oklch(0.3 0.02 260);
+       --color-sidebar-active: oklch(0.3 0.04 250);
+       --font-sans: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
+       --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+     }
+     ```
+     Also define @utility panel, @utility panel-inset, @utility divider.
+     Also define @layer base styles for focus-visible, button:active, transitions.
+
+2.2  Create the root layout (src/routes/+layout.svelte):
+     - Fixed sidebar on the left (dark background: --color-sidebar)
+     - Sidebar contains: app logo/title, navigation links, sign-in status
+     - Navigation items:
+       * Dashboard (home icon)
+       * Apps (grid icon)
+       * Config Profiles (settings icon)
+       * Bulk Assign (layers icon — the core feature, visually prominent)
+     - Main content area with responsive padding
+     - Mobile: sidebar collapses to hamburger menu overlay
+     - Use Svelte 5 runes for sidebar open/close state:
+       `let sidebarOpen = $state(false);`
+
+2.3  Create reusable UI components in src/lib/components/ui/:
+
+     SearchInput.svelte:
+       - Text input with search icon, debounced input event
+       - Props: placeholder, value (bindable), debounceMs (default 300)
+
+     Badge.svelte:
+       - Small colored label for assignment intent, status, etc.
+       - Props: variant ('required' | 'available' | 'uninstall' | 'exclude' | 'neutral')
+       - Maps variants to design token colors
+
+     StatCard.svelte:
+       - Metric card showing a number + label (for dashboard)
+       - Props: label, value, icon (Lucide component)
+
+     Spinner.svelte:
+       - Loading spinner with optional label text
+
+     EmptyState.svelte:
+       - Centered message + icon for when lists have no items
+       - Props: icon, title, description
+
+     ConfirmDialog.svelte:
+       - Modal dialog for confirming destructive actions
+       - Props: open, title, message, confirmLabel, onConfirm, onCancel
+       - Uses <dialog> element for accessibility
+
+     PageHeader.svelte:
+       - Page title + optional description + optional action slot
+       - Consistent spacing and typography across all pages
+
+2.4  Create the dashboard page (src/routes/+page.svelte):
+     - Welcome message with signed-in user name (or sign-in prompt if not authed)
+     - Once authenticated, show stat cards:
+       * Total apps, Total config profiles, Total groups
+     - Quick link to "Bulk Assign" as a prominent call-to-action
+     - This page will be populated with real data in later phases
+
+FILES TO CREATE:
+- src/app.css (design system — may already exist, update it)
+- src/routes/+layout.svelte (app shell with sidebar)
+- src/lib/components/ui/SearchInput.svelte
+- src/lib/components/ui/Badge.svelte
+- src/lib/components/ui/StatCard.svelte
+- src/lib/components/ui/Spinner.svelte
+- src/lib/components/ui/EmptyState.svelte
+- src/lib/components/ui/ConfirmDialog.svelte
+- src/lib/components/ui/PageHeader.svelte
+- src/routes/+page.svelte (dashboard)
+
+================================================================================
+PHASE 3: ENTRA ID AUTHENTICATION WITH MSAL.JS [COMPLETED]
+================================================================================
+
+GOAL: Users can sign in with their Microsoft Entra ID account. The app acquires
+      an access token for MS Graph API with the required delegated permissions.
+      Authentication is entirely client-side using MSAL.js Browser library.
+
+MSAL CONFIGURATION:
+- Use PublicClientApplication (SPA, no client secret)
+- Multi-tenant authority: https://login.microsoftonline.com/common
+- Redirect URI: http://localhost:5173 (dev) / production URL
+- Scopes: User.Read, DeviceManagementApps.ReadWrite.All,
+          DeviceManagementConfiguration.ReadWrite.All, Group.Read.All
+
+STEPS:
+
+3.1  Create MSAL configuration (src/lib/auth/config.ts):
+     - Export msalConfig object with:
+       * auth.clientId: read from environment variable (PUBLIC_ENTRA_CLIENT_ID)
+       * auth.authority: "https://login.microsoftonline.com/common"
+       * auth.redirectUri: dynamically set from window.location.origin
+       * auth.postLogoutRedirectUri: same as redirectUri
+     - Export loginRequest object with scopes array
+     - Export graphScopes array for token acquisition
+
+3.2  Create MSAL instance manager (src/lib/auth/msal.ts):
+     - Export a function getOrCreateMsalInstance() that lazily creates and
+       initializes the PublicClientApplication singleton
+     - Must call msalInstance.initialize() before use (required by MSAL v2)
+     - Handle the redirect promise on initialization:
+       msalInstance.handleRedirectPromise() for redirect flow cleanup
+     - Export helper functions:
+       * signIn(): calls msalInstance.loginPopup(loginRequest)
+       * signOut(): calls msalInstance.logoutPopup()
+       * getAccessToken(): calls msalInstance.acquireTokenSilent() with graphScopes,
+         falls back to acquireTokenPopup() on InteractionRequiredAuthError
+       * getAccount(): returns the active account or null
+
+3.3  Create auth store (src/lib/stores/auth.ts):
+     - Use Svelte 5 runes in a module-level reactive store:
+       * let account = $state<AccountInfo | null>(null)
+       * let isAuthenticated = $derived(account !== null)
+       * let isInitializing = $state(true)
+     - Export functions: initAuth(), login(), logout(), getToken()
+     - initAuth() checks for existing session on page load (acquireTokenSilent)
+
+3.4  Create AuthGuard component (src/lib/components/ui/AuthGuard.svelte):
+     - Wraps page content; shows sign-in prompt if not authenticated
+     - Shows loading spinner while MSAL initializes
+     - When authenticated, renders child content via <slot> or {@render}
+     - Sign-in button triggers the login() function from auth store
+
+3.5  Update root layout to initialize auth:
+     - Import and call initAuth() in an $effect in +layout.svelte
+     - Show user name and sign-out button in sidebar when authenticated
+     - Show "Sign in with Microsoft" button in sidebar when not authenticated
+
+3.6  Create environment variable handling:
+     - PUBLIC_ENTRA_CLIENT_ID env var (prefixed with PUBLIC_ so SvelteKit
+       exposes it to client-side code)
+     - Create .env.example documenting required variables
+     - For Cloudflare Pages: set in dashboard under Settings > Environment Variables
+
+3.7  Handle auth edge cases:
+     - Token expiry: acquireTokenSilent handles refresh automatically
+     - Multi-tab: MSAL.js handles cross-tab session sync via BroadcastChannel
+     - Consent required: redirect to admin consent URL (handle ConsentRequired error)
+     - User cancelled popup: graceful error message, allow retry
+
+FILES TO CREATE:
+- src/lib/auth/config.ts
+- src/lib/auth/msal.ts
+- src/lib/stores/auth.ts
+- src/lib/components/ui/AuthGuard.svelte
+- .env.example
+
+FILES TO MODIFY:
+- src/routes/+layout.svelte (add auth initialization and user display)
+- src/app.d.ts (add type for env variables)
+
+
+================================================================================
+PHASE 4: MS GRAPH API CLIENT LAYER [COMPLETED]
+================================================================================
+
+GOAL: Type-safe MS Graph API client that can be used from both client-side code
+      and SvelteKit server routes. Includes Zod schemas for response validation,
+      proper error handling, and rate limit retry logic.
+
+ARCHITECTURE DECISION:
+Graph API calls go through SvelteKit server routes (Workers). This keeps the
+access token handling server-side after initial acquisition and allows us to
+add caching or request coalescing later. The client-side sends the access token
+in the Authorization header to our server routes, which forward it to Graph API.
+
+ALTERNATIVE (simpler): Call Graph API directly from the browser using the MSAL
+token. This is valid for an MVP and avoids the server route layer. The benefit
+of server routes is better error handling, potential caching, and hiding Graph
+API details from the frontend.
+
+RECOMMENDED: Start with direct browser-to-Graph calls for simplicity. The MSAL
+token is already in the browser. Add server route proxying later if needed.
+
+STEPS:
+
+4.1  Define TypeScript types for Graph entities (src/lib/types/graph.ts):
+     - MobileApp: id, displayName, description, publisher, "@odata.type",
+       largIcon (nullable), isAssigned, appAvailability
+     - MobileAppAssignment: id, intent, target (AssignmentTarget), settings
+     - AssignmentTarget: discriminated union on "@odata.type":
+       * GroupAssignmentTarget: { groupId }
+       * AllDevicesAssignmentTarget: {}
+       * AllLicensedUsersAssignmentTarget: {}
+       * ExclusionGroupAssignmentTarget: { groupId }
+     - AssignmentFilter fields on targets:
+       * deviceAndAppManagementAssignmentFilterId (nullable)
+       * deviceAndAppManagementAssignmentFilterType: "include" | "exclude" | "none"
+     - ConfigurationPolicy: id, name, description, platforms, technologies,
+       roleScopeTagIds, settingCount, isAssigned
+     - ConfigurationPolicyAssignment: similar to MobileAppAssignment
+     - Group: id, displayName, description, groupTypes, membershipRule
+     - AssignmentFilter: id, displayName, description, platform, rule
+     - GraphPagedResponse<T>: { value: T[], "@odata.nextLink"?: string }
+     - BatchRequest: { requests: BatchRequestItem[] }
+     - BatchResponse: { responses: BatchResponseItem[] }
+     - BatchRequestItem: { id, method, url, body?, headers? }
+     - BatchResponseItem: { id, status, body, headers? }
+
+4.2  Create Zod schemas mirroring the types (src/lib/types/schemas.ts):
+     - One schema per Graph entity for runtime validation
+     - Use z.discriminatedUnion for AssignmentTarget based on "@odata.type"
+     - Export both schemas and inferred types (z.infer<typeof schema>)
+
+4.3  Create the Graph API client (src/lib/graph/client.ts):
+     - Export class GraphClient or functional module
+     - Constructor takes getAccessToken: () => Promise<string>
+     - Core method: async request<T>(path, options) that:
+       * Gets fresh access token
+       * Prepends base URL (https://graph.microsoft.com/beta)
+       * Sets Authorization header
+       * Sets ConsistencyLevel: eventual header (needed for $search/$count)
+       * Calls fetch()
+       * Handles HTTP 429: read Retry-After header, wait, retry (max 3 times)
+       * Handles HTTP 401: attempt token refresh, retry once
+       * Throws typed errors (GraphApiError with status, code, message)
+     - Pagination helper: async fetchAll<T>(path, options) that follows
+       @odata.nextLink until all pages are fetched (with configurable max pages)
+     - Batch helper: async batch(requests: BatchRequestItem[]) that:
+       * Chunks requests into groups of 20
+       * Sends each chunk as POST /$batch
+       * Collects all responses
+       * Returns BatchResponseItem[] with individual success/failure per request
+       * Handles 429 on individual batch responses (retry failed items)
+
+4.4  Create domain-specific API modules:
+
+     src/lib/graph/apps.ts:
+       - listApps(client, options?): paginated app list with $filter, $search support
+       - getAppAssignments(client, appId): assignment array
+       - assignApp(client, appId, assignments): POST assign with full assignment array
+
+     src/lib/graph/configurations.ts:
+       - listConfigPolicies(client, options?)
+       - getConfigAssignments(client, policyId)
+       - assignConfigPolicy(client, policyId, assignments)
+
+     src/lib/graph/groups.ts:
+       - searchGroups(client, query): groups matching display name search
+       - listGroups(client, options?): paginated group list
+
+     src/lib/graph/filters.ts:
+       - listAssignmentFilters(client): all assignment filters
+
+4.5  Create error types (src/lib/graph/errors.ts):
+     - GraphApiError extends Error { status, code, message, requestId }
+     - RateLimitError extends GraphApiError { retryAfterSeconds }
+     - AuthenticationError extends GraphApiError
+     - PermissionError extends GraphApiError
+     - toFriendlyMessage(error): user-readable error string
+
+4.6  Create a Graph client store (src/lib/stores/graph.ts):
+     - Lazily creates GraphClient instance using auth store's getToken()
+     - Exports getGraphClient() function
+
+FILES TO CREATE:
+- src/lib/types/graph.ts
+- src/lib/types/schemas.ts
+- src/lib/graph/client.ts
+- src/lib/graph/apps.ts
+- src/lib/graph/configurations.ts
+- src/lib/graph/groups.ts
+- src/lib/graph/filters.ts
+- src/lib/graph/errors.ts
+- src/lib/stores/graph.ts
+
+================================================================================
+PHASE 5: APPS BROWSING [COMPLETED]
+================================================================================
+
+GOAL: Authenticated users can browse and search their Intune mobile apps.
+      Each app shows its name, type, publisher, and assignment count.
+
+STEPS:
+
+5.1  Create the apps list page (src/routes/apps/+page.svelte):
+     - Wrapped in AuthGuard component
+     - PageHeader: "Applications" with description
+     - SearchInput at the top for filtering by display name
+     - List/table of apps showing:
+       * App display name
+       * App type (parsed from @odata.type — Win32, iOS, Android, etc.)
+       * Publisher
+       * Assignment count (loaded separately or from $expand)
+     - Loading spinner while fetching
+     - EmptyState when no apps match search
+     - Click an app to navigate to /apps/[id] (assignment detail, Phase 7)
+
+5.2  Implement app data fetching:
+     - Fetch apps on page load using the Graph client
+     - Use $state for the apps list, loading state, and error state
+     - Implement client-side search filtering (filter the fetched list)
+     - For large tenants, consider paginating: fetch first 100 apps,
+       add "Load More" button for next page via @odata.nextLink
+     - Parse @odata.type to a friendly platform name:
+       * "#microsoft.graph.win32LobApp" -> "Win32"
+       * "#microsoft.graph.iosVppApp" -> "iOS VPP"
+       * "#microsoft.graph.androidManagedStoreApp" -> "Android"
+       * "#microsoft.graph.windowsMicrosoftEdgeApp" -> "Edge"
+       * etc. — create a mapping utility in src/lib/utils/app-types.ts
+
+5.3  Create AppCard or AppRow component (src/lib/components/ui/AppRow.svelte):
+     - Displays a single app in the list
+     - Shows platform icon (map app type to Lucide icon)
+     - Shows assignment count as a small badge
+     - Click handler navigates to detail view
+     - Subtle hover effect using transition classes
+
+FILES TO CREATE:
+- src/routes/apps/+page.svelte
+- src/lib/utils/app-types.ts
+- src/lib/components/ui/AppRow.svelte
+
+================================================================================
+PHASE 6: CONFIGURATION PROFILES BROWSING [COMPLETED]
+================================================================================
+
+GOAL: Same as Phase 5 but for device configuration policies (Settings Catalog).
+
+STEPS:
+
+6.1  Create the config profiles list page (src/routes/profiles/+page.svelte):
+     - Same structure as the apps page
+     - PageHeader: "Configuration Profiles"
+     - SearchInput for filtering
+     - List showing: profile name, platform, technology, setting count
+     - Click navigates to /profiles/[id] (Phase 7)
+
+6.2  Implement config policy data fetching:
+     - Fetch from listConfigPolicies() Graph API function
+     - Parse platforms array into friendly names
+     - Parse technologies into readable labels
+
+6.3  Create ProfileRow component (src/lib/components/ui/ProfileRow.svelte):
+     - Similar to AppRow but shows platform and setting count
+
+FILES TO CREATE:
+- src/routes/profiles/+page.svelte
+- src/lib/components/ui/ProfileRow.svelte
+
+================================================================================
+PHASE 7: ASSIGNMENT VIEWING [COMPLETED]
+================================================================================
+
+GOAL: View all current assignments for a specific app or config profile.
+      Shows each assignment's target group, intent, filter, and settings.
+      This is read-only — editing is handled by the bulk wizard in Phase 8.
+
+STEPS:
+
+7.1  Create app detail page (src/routes/apps/[id]/+page.svelte):
+     - Fetch the app by ID and its assignments
+     - Show app name, type, publisher, description at the top
+     - Assignment list showing each assignment:
+       * Target: group name (resolved via a group lookup), or "All Devices" / "All Users"
+       * Intent: badge showing Required/Available/Uninstall/AvailableWithoutEnrollment
+       * Filter: if applied, show filter name + include/exclude mode
+     - EmptyState if no assignments: "No assignments yet. Use Bulk Assign to add some."
+     - "Edit in Bulk Assign" button to navigate to the wizard pre-populated with this app
+
+7.2  Create config profile detail page (src/routes/profiles/[id]/+page.svelte):
+     - Same structure as app detail but for configuration policies
+
+7.3  Create AssignmentRow component (src/lib/components/assignments/AssignmentRow.svelte):
+     - Reusable row showing: target name, intent badge, filter info
+     - Used by both app and profile detail pages
+
+7.4  Group name resolution:
+     - Assignments only contain groupId, not group display names
+     - Create a utility that batch-resolves group IDs to names
+     - Use the Graph batch API to fetch multiple groups at once:
+       GET /groups/{id}?$select=displayName for each groupId
+     - Cache resolved names in a Svelte store for the session
+       (src/lib/stores/group-cache.ts — simple Map<string, string>)
+     - For "All Devices" and "All Users", detect by target @odata.type
+       (no group lookup needed)
+
+7.5  Assignment filter resolution:
+     - Similarly, assignments reference filter IDs not names
+     - Fetch all assignment filters once (they're tenant-wide, usually <100)
+     - Cache in a store, look up by ID
+
+FILES TO CREATE:
+- src/routes/apps/[id]/+page.svelte
+- src/routes/profiles/[id]/+page.svelte
+- src/lib/components/assignments/AssignmentRow.svelte
+- src/lib/stores/group-cache.ts
+
+================================================================================
+PHASE 8: BULK ASSIGNMENT WIZARD [COMPLETED]
+================================================================================
+
+GOAL: The core feature. A multi-step wizard that lets users:
+      1. Select multiple apps and/or config profiles
+      2. Select target groups (including All Devices / All Users)
+      3. Configure assignment intent and filters
+      4. Review changes and resolve conflicts
+      5. Execute the assignments
+
+This is the primary value proposition of the entire application.
+
+UI APPROACH: Multi-step wizard with a progress stepper at the top. Each step is
+a clearly separated view. Users can go back to previous steps to modify
+selections. The final step shows a summary and executes on confirmation.
+
+STEPS:
+
+8.1  Create wizard page (src/routes/assign/+page.svelte):
+     - Full-page wizard wrapped in AuthGuard
+     - Stepper component showing: Items → Groups → Configure → Review → Done
+     - Track current step with $state, allow back navigation
+     - Wizard state object (src/lib/types/wizard.ts):
+       ```
+       type WizardState = {
+         selectedApps: MobileApp[];
+         selectedProfiles: ConfigurationPolicy[];
+         selectedGroups: GroupTarget[];    // includes All Devices/All Users
+         intent: AssignmentIntent;
+         filterConfig: FilterConfig | null;
+         exclusionGroups: GroupTarget[];   // groups to exclude
+       };
+
+       type GroupTarget = {
+         type: 'group' | 'allDevices' | 'allUsers';
+         groupId?: string;
+         displayName: string;
+       };
+
+       type FilterConfig = {
+         filterId: string;
+         filterName: string;
+         filterType: 'include' | 'exclude';
+       };
+       ```
+
+8.2  Step 1 — Select Items (src/lib/components/assignments/StepSelectItems.svelte):
+     - Two tabs: "Apps" and "Config Profiles"
+     - Each tab shows a searchable, scrollable list with checkboxes
+     - Fetch apps and profiles using Graph client (reuse from Phase 5/6)
+     - Selected items shown as chips/pills below the search
+     - "N items selected" counter
+     - Can deselect by clicking the chip's X button
+     - Support pre-selecting an app if navigated from the app detail page
+       (via URL query param: /assign?appId=xxx)
+
+8.3  Step 2 — Select Groups (src/lib/components/assignments/StepSelectGroups.svelte):
+     - Search input that queries Graph API for groups as user types
+       (debounced, min 2 characters)
+     - Special entries pinned at top (not from search):
+       * "All Devices" (virtual, uses AllDevicesAssignmentTarget)
+       * "All Users" (virtual, uses AllLicensedUsersAssignmentTarget)
+     - Checkboxes next to each group result
+     - Selected groups shown as chips
+     - Optional: "Exclusion Groups" expandable section for groups to exclude
+
+8.4  Step 3 — Configure (src/lib/components/assignments/StepConfigure.svelte):
+     - Assignment intent selector (radio buttons or segmented control):
+       * Required — app must be installed
+       * Available — app available in Company Portal
+       * Available without enrollment — available without device enrollment
+       * Uninstall — remove the app
+     - Assignment filter section:
+       * Toggle: "Apply assignment filter" (off by default)
+       * When on: dropdown to select filter from fetched list
+       * Filter mode: Include / Exclude radio buttons
+     - Intent descriptions shown as helper text beneath each option
+     - Visual preview: "You are assigning 5 apps to 3 groups as Required"
+
+8.5  Step 4 — Review & Conflicts (src/lib/components/assignments/StepReview.svelte):
+     - Summary table showing every assignment that will be created:
+       * Columns: App/Profile Name | Target Group | Intent | Filter
+     - CONFLICT DETECTION:
+       * For each selected app, fetch its current assignments
+       * Compare against the new assignments being created
+       * A conflict exists when an app already has an assignment to a selected group
+       * Show conflicts highlighted in yellow/amber
+       * For each conflict, let the user choose:
+         - "Update" — replace existing assignment with new intent/filter
+         - "Skip" — keep existing assignment unchanged
+       * Show what will change: "Intent: Available → Required"
+     - Total count: "X new assignments, Y updates, Z skipped"
+     - "Apply" button to execute (disabled until all conflicts resolved)
+
+8.6  Step 5 — Execution & Results (src/lib/components/assignments/StepResults.svelte):
+     - Progress indicator showing execution progress
+     - For each app/profile being assigned:
+       * Fetch current assignments
+       * Merge new assignments with existing (respecting user's conflict choices)
+       * POST the complete assignment array via assign endpoint
+     - Show per-item status: success (green check), failed (red X), pending (spinner)
+     - On failure: show error message, offer retry for failed items
+     - On complete: "All assignments applied successfully" with links to view results
+     - Uses the batch execution logic from Phase 9
+
+8.7  Create wizard stepper component (src/lib/components/ui/Stepper.svelte):
+     - Horizontal step indicator showing step labels and current position
+     - Completed steps show checkmark, current step is highlighted
+     - Future steps are dimmed
+
+FILES TO CREATE:
+- src/routes/assign/+page.svelte
+- src/lib/types/wizard.ts
+- src/lib/components/assignments/StepSelectItems.svelte
+- src/lib/components/assignments/StepSelectGroups.svelte
+- src/lib/components/assignments/StepConfigure.svelte
+- src/lib/components/assignments/StepReview.svelte
+- src/lib/components/assignments/StepResults.svelte
+- src/lib/components/ui/Stepper.svelte
+
+================================================================================
+PHASE 9: BATCH API INTEGRATION FOR BULK OPERATIONS [COMPLETED]
+================================================================================
+
+GOAL: Implement the actual execution engine that takes the wizard's output and
+      applies assignments efficiently using the MS Graph batch API.
+
+THE CHALLENGE:
+Each app/profile's assign endpoint REPLACES all assignments (not append). So for
+each item, we must:
+  1. GET current assignments
+  2. Merge with new assignments (respecting conflict resolution from wizard)
+  3. POST the full merged assignment list
+
+For 20 apps, that's 20 GETs + 20 POSTs = 40 requests. The batch API lets us
+send 20 per batch, so this is 2 batches.
+
+STEPS:
+
+9.1  Create the assignment execution engine (src/lib/graph/execute.ts):
+     - Export async function executeBulkAssignment(params):
+       * params: { client, items, groups, intent, filter, conflicts }
+       * Returns: { results: AssignmentResult[] }
+     - AssignmentResult: { itemId, itemName, status: 'success'|'error', error?: string }
+
+9.2  Implement the merge algorithm (src/lib/graph/merge.ts):
+     - mergeAssignments(current, additions, conflicts):
+       * current: existing assignments for the app
+       * additions: new assignments to add
+       * conflicts: user's resolution choices from the wizard
+     - For each addition:
+       * Check if a current assignment exists for the same group
+       * If conflict exists and user chose "skip" → keep current
+       * If conflict exists and user chose "update" → replace with new
+       * If no conflict → append to the list
+     - Handle exclusion groups: add ExclusionGroupAssignmentTarget entries
+     - Handle All Devices / All Users: use the special target types
+     - Always preserve assignments that aren't part of this bulk operation
+
+9.3  Implement batched execution:
+     - Phase A — Fetch current assignments for all items:
+       * Build batch: GET /deviceAppManagement/mobileApps/{id}/assignments for each app
+       * Send via batch API (groups of 20)
+       * Parse responses, map each item to its current assignments
+     - Phase B — Compute merged assignments:
+       * For each item, run mergeAssignments()
+     - Phase C — Apply merged assignments:
+       * Build batch: POST .../assign for each app with merged body
+       * Send via batch API (groups of 20)
+       * Collect results per item
+     - Handle mixed app + profile items:
+       * Apps use /deviceAppManagement/mobileApps/{id}/assign
+       * Profiles use /deviceManagement/configurationPolicies/{id}/assign
+       * Can be mixed in the same batch request
+
+9.4  Implement progress reporting:
+     - Export progress as a reactive value the UI can subscribe to
+     - Track: total items, completed, failed, current phase (fetching/merging/applying)
+     - Use a callback or Svelte store pattern:
+       ```
+       type ProgressCallback = (progress: {
+         phase: 'fetching' | 'merging' | 'applying';
+         completed: number;
+         total: number;
+         currentItem?: string;
+       }) => void;
+       ```
+
+9.5  Implement error handling and retry:
+     - If a batch response has 429 for individual items: collect, wait, retry
+     - If a batch response has 5xx: retry up to 2 times with backoff
+     - If an individual item fails: mark as failed, continue with others
+     - Never let one failure block the entire operation
+     - Collect all errors with item context for display in StepResults
+
+9.6  Handle rate limiting gracefully:
+     - If we get 429 on the batch request itself: wait Retry-After seconds, retry
+     - If individual responses within batch are 429: extract those items,
+       wait, re-batch just the failed items
+     - Show "Rate limited, waiting X seconds..." in the progress UI
+
+FILES TO CREATE:
+- src/lib/graph/execute.ts
+- src/lib/graph/merge.ts
+
+FILES TO MODIFY:
+- src/lib/components/assignments/StepResults.svelte (wire up to execution engine)
+
+================================================================================
+PHASE 10: ENTRA ID APP REGISTRATION & CLOUDFLARE DEPLOYMENT [COMPLETED]
+================================================================================
+
+GOAL: Register the multi-tenant Entra ID application and deploy to Cloudflare
+      Pages for production use.
+
+ENTRA ID APP REGISTRATION STEPS:
+
+10.1 Register the application in Microsoft Entra ID:
+     - Go to https://entra.microsoft.com > App registrations > New registration
+     - Name: "Intune Assignments Manager" (or preferred name)
+     - Supported account types: "Accounts in any organizational directory"
+       (multi-tenant, so any Entra tenant can use it)
+     - Redirect URI: type "Single-page application (SPA)":
+       * http://localhost:5173 (for local dev)
+       * https://your-production-domain.pages.dev (add after deploying)
+     - Click "Register"
+
+10.2 Configure API permissions:
+     - Go to "API permissions" > "Add a permission" > "Microsoft Graph"
+     - Select "Delegated permissions" and add:
+       * User.Read
+       * DeviceManagementApps.ReadWrite.All
+       * DeviceManagementConfiguration.ReadWrite.All
+       * Group.Read.All
+     - NOTE: DeviceManagement* permissions require admin consent
+     - Do NOT click "Grant admin consent" — each tenant's admin will consent
+       when they first sign in
+
+10.3 Configure authentication settings:
+     - Go to "Authentication"
+     - Under "Single-page application" redirect URIs, ensure both localhost
+       and production URLs are listed
+     - Enable "Access tokens" and "ID tokens" under Implicit grant (for SPA)
+     - Set "Supported account types" to Multi-tenant
+
+10.4 Note the Application (client) ID:
+     - This goes into PUBLIC_ENTRA_CLIENT_ID environment variable
+     - No client secret needed (public client / SPA)
+
+CLOUDFLARE PAGES DEPLOYMENT:
+
+10.5 Create wrangler.toml in project root:
+     ```
+     name = "intune-assignments-manager"
+     compatibility_date = "2024-01-01"
+     pages_build_output_dir = ".svelte-kit/cloudflare"
+     ```
+
+10.6 Deploy to Cloudflare Pages:
+     - Option A: Connect GitHub repo to Cloudflare Pages dashboard
+       * Build command: pnpm build
+       * Build output directory: .svelte-kit/cloudflare
+       * Environment variables: set PUBLIC_ENTRA_CLIENT_ID
+     - Option B: Manual deploy via wrangler CLI
+       * `pnpm build`
+       * `wrangler pages deploy .svelte-kit/cloudflare`
+
+10.7 Configure environment variables in Cloudflare Pages:
+     - PUBLIC_ENTRA_CLIENT_ID = <your app registration client ID>
+     - Set for both Production and Preview environments
+
+10.8 Update Entra ID redirect URI:
+     - Add the Cloudflare Pages URL (e.g., https://intune-assignments.pages.dev)
+       to the app registration's redirect URIs
+
+10.9 Test the production deployment:
+     - Visit the Cloudflare Pages URL
+     - Sign in with a Microsoft account that has Intune admin role
+     - Admin consent prompt should appear on first sign-in for the tenant
+     - Verify apps load, assignments display, bulk assign works
+
+10.10 Local testing with wrangler:
+      - `pnpm build && wrangler pages dev .svelte-kit/cloudflare`
+      - Verifies the app works in the Cloudflare Workers runtime
+      - Tests that no Node.js-only APIs are accidentally used
+
+FILES TO CREATE:
+- wrangler.toml
+
+FILES TO MODIFY:
+- .env.example (document PUBLIC_ENTRA_CLIENT_ID)
+
+
+
+================================================================================
+PHASE 11: FUTURE ENHANCEMENTS [COMPLETED]
+================================================================================
+
+CSV EXPORT: [COMPLETED]
+- Export current assignments for selected apps to CSV
+- Columns: ItemType, ItemName, ItemId, TargetType, GroupName, GroupId, Intent, FilterName, FilterId, FilterMode
+- Export buttons on app and profile detail pages
+
+CSV IMPORT: [COMPLETED]
+- Import assignment plan from CSV file
+- Validate against current tenant data (resolve names to IDs)
+- Feed into the bulk assign wizard at the review step
+- Import dialog with file picker, validation pipeline, and preview
+
+ASSIGNMENT DIFF VIEW: [COMPLETED]
+- Before/after comparison when modifying existing assignments
+- Visual diff showing what will change (added/changed/unchanged with color coding)
+- Integrated into StepReview with "Assignment List" / "Change Preview" toggle
+
+AUDIT LOG: [COMPLETED]
+- View recent assignment changes via Intune audit events
+- GET /deviceManagement/auditEvents filtered to assignment operations
+- Filterable by date range and activity type, with pagination
+- New /audit route with navigation link in sidebar
+
+NOTIFICATION SYSTEM: [COMPLETED]
+- Toast notifications for successful operations
+- Error notification panel for failed operations
+- Auto-dismiss success toasts, persistent error toasts
+- Global notification store with notifySuccess/notifyError/notifyWarning/notifyInfo
+
+DARK MODE: [COMPLETED]
+- Dark mode support using OKLCH token overrides on .dark class
+- Three-way toggle in sidebar (Light / Dark / System)
+- Auto-detect from system preference, persist to localStorage
+- Flash prevention via inline script in app.html
+- Smooth 200ms transitions when toggling
+
+
+================================================================================
+PHASE 12: DYNAMIC PERMISSION CONSENT & SCOPE MANAGEMENT [COMPLETED]
+================================================================================
+
+GOAL: Build a permission management system that detects which Microsoft Graph
+      permissions the current user has consented to, and prompts for incremental
+      consent when a feature requires permissions not yet granted. This is the
+      foundation for all subsequent phases that add new permission scopes.
+
+PROBLEM THIS SOLVES:
+The app currently requests all permissions upfront during sign-in. As we add
+new features (devices, Autopilot, etc.) that require new permission scopes,
+existing users would need to re-consent. Incremental consent lets us request
+only the permissions needed for each feature, when the user first accesses it.
+This also means users who only need assignment management don't see scary
+permission prompts for device wipe capabilities they won't use.
+
+MSAL INCREMENTAL CONSENT:
+MSAL.js supports incremental/dynamic consent. Instead of requesting all scopes
+at sign-in, you request additional scopes when needed:
+  const tokenResponse = await msalInstance.acquireTokenSilent({
+    scopes: ['DeviceManagementManagedDevices.Read.All'],
+    account: currentAccount
+  });
+If the user hasn't consented to the scope, this throws
+InteractionRequiredAuthError, and we fall back to acquireTokenPopup() which
+shows the consent prompt.
+
+ARCHITECTURE:
+
+  Permission Tiers (mapped to features):
+    TIER 1 (Core — requested at sign-in):
+      - User.Read
+      - DeviceManagementApps.ReadWrite.All
+      - DeviceManagementConfiguration.ReadWrite.All
+      - Group.Read.All
+
+    TIER 2 (Device Management — requested on first device page visit):
+      - DeviceManagementManagedDevices.Read.All
+
+    TIER 3 (Device Actions — requested on first action attempt):
+      - DeviceManagementManagedDevices.ReadWrite.All
+
+    TIER 4 (Enrollment/Autopilot — requested on first Autopilot visit):
+      - DeviceManagementEnrollment.Read.All
+
+STEPS:
+
+12.1 Define permission registry (src/lib/auth/permissions.ts):
+     - Export PermissionTier type: { id, name, description, scopes: string[],
+       features: string[] }
+     - Export PERMISSION_TIERS constant: array of all tiers with metadata
+     - Export FEATURE_PERMISSIONS map: feature route → required scope(s)
+       * '/devices' → ['DeviceManagementManagedDevices.Read.All']
+       * '/devices/*/actions' → ['DeviceManagementManagedDevices.ReadWrite.All']
+       * '/autopilot' → ['DeviceManagementEnrollment.Read.All']
+       * '/apps', '/profiles', '/assign', etc. → [] (covered by tier 1)
+     - Export function getRequiredScopes(feature: string): string[]
+
+12.2 Create permission checking utility (src/lib/auth/permission-check.ts):
+     - hasConsented(scope: string): boolean
+       * Check if the current access token includes the scope
+       * Parse token claims or track granted scopes in store
+     - requestConsent(scopes: string[]): Promise<boolean>
+       * Call acquireTokenSilent with the new scopes
+       * On InteractionRequiredAuthError: call acquireTokenPopup
+       * Return true if consent granted, false if user declined
+     - getGrantedScopes(): string[]
+       * Parse the current token to extract granted scopes
+       * Access tokens include a 'scp' claim with space-separated scopes
+
+12.3 Create permission store (src/lib/stores/permissions.svelte.ts):
+     - let grantedScopes = $state<string[]>([])
+     - let pendingConsent = $state<string[] | null>(null)
+     - Export hasPermission(scope): derived boolean check
+     - Export ensurePermissions(scopes): async function that checks and
+       requests consent if needed
+     - Update grantedScopes whenever a new token is acquired
+
+12.4 Create ConsentPrompt component (src/lib/components/ui/ConsentPrompt.svelte):
+     - Shown when a page requires permissions not yet granted
+     - Displays:
+       * Feature name that requires additional permissions
+       * List of permissions being requested with plain-language descriptions:
+         "Read device information" for DeviceManagementManagedDevices.Read.All
+         "Perform device actions (sync, restart, retire)"
+           for DeviceManagementManagedDevices.ReadWrite.All
+         "View Autopilot enrollment data"
+           for DeviceManagementEnrollment.Read.All
+       * "Grant Access" button to trigger consent popup
+       * "Go Back" button to return to previous page
+     - Replaces page content when permissions are missing
+     - After consent is granted, automatically loads the page content
+
+12.5 Create PermissionGuard component (src/lib/components/ui/PermissionGuard.svelte):
+     - Wrapper component similar to AuthGuard but for permissions
+     - Props: requiredScopes: string[], featureName: string
+     - Checks if all required scopes are granted
+     - If yes: render children
+     - If no: render ConsentPrompt
+     - Use in each route page that requires non-tier-1 permissions
+
+12.6 Update auth store (src/lib/stores/auth.svelte.ts):
+     - Track granted scopes from token responses
+     - Expose getTokenWithScopes(scopes: string[]) method that handles
+       incremental consent flow
+     - Update token acquisition to parse and store granted scopes
+
+12.7 Update MSAL configuration (src/lib/auth/config.ts):
+     - Keep tier 1 scopes as the default login scopes
+     - Remove any scopes that should be requested incrementally
+     - Add helper to build scope arrays for incremental requests
+
+12.8 Create a permissions settings/status page (src/routes/settings/+page.svelte):
+     - Settings page showing current permission status
+     - Lists all permission tiers with granted/not granted status
+     - "Grant" buttons for each ungranted tier
+     - Useful for admins who want to pre-authorize all permissions
+
+FILES TO CREATE:
+- src/lib/auth/permissions.ts
+- src/lib/auth/permission-check.ts
+- src/lib/stores/permissions.svelte.ts
+- src/lib/components/ui/ConsentPrompt.svelte
+- src/lib/components/ui/PermissionGuard.svelte
+- src/routes/settings/+page.svelte
+
+FILES TO MODIFY:
+- src/lib/stores/auth.svelte.ts (add scope tracking, incremental consent)
+- src/lib/auth/config.ts (restructure scopes into tiers)
+- src/lib/auth/msal.ts (update token acquisition for scope tracking)

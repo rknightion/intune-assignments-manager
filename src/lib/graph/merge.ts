@@ -1,0 +1,217 @@
+import type {
+	AssignmentIntent,
+	AssignmentTarget,
+	AllDevicesAssignmentTarget,
+	AllLicensedUsersAssignmentTarget,
+	ConfigurationPolicyAssignment,
+	ExclusionGroupAssignmentTarget,
+	GroupAssignmentTarget,
+	MobileAppAssignment
+} from '$lib/types/graph';
+import type { ConflictChoice, FilterConfig, GroupTarget } from '$lib/types/wizard';
+
+// ─── Merge Parameter Types ─────────────────────────────────────────
+
+export interface MergeAppParams {
+	current: MobileAppAssignment[];
+	groups: GroupTarget[];
+	exclusionGroups: GroupTarget[];
+	intent: AssignmentIntent;
+	filter: FilterConfig | null;
+	conflicts: ConflictChoice[];
+	itemId: string;
+}
+
+export interface MergeProfileParams {
+	current: ConfigurationPolicyAssignment[];
+	groups: GroupTarget[];
+	exclusionGroups: GroupTarget[];
+	filter: FilterConfig | null;
+	conflicts: ConflictChoice[];
+	itemId: string;
+}
+
+// ─── Target Key ────────────────────────────────────────────────────
+
+export function getTargetKey(target: AssignmentTarget): string {
+	switch (target['@odata.type']) {
+		case '#microsoft.graph.groupAssignmentTarget':
+			return `group::${target.groupId}`;
+		case '#microsoft.graph.exclusionGroupAssignmentTarget':
+			return `exclusion::${target.groupId}`;
+		case '#microsoft.graph.allDevicesAssignmentTarget':
+			return 'allDevices';
+		case '#microsoft.graph.allLicensedUsersAssignmentTarget':
+			return 'allUsers';
+	}
+}
+
+// ─── Target Builders ───────────────────────────────────────────────
+
+function buildFilterFields(filter: FilterConfig | null) {
+	if (filter) {
+		return {
+			deviceAndAppManagementAssignmentFilterId: filter.filterId,
+			deviceAndAppManagementAssignmentFilterType: filter.filterType as 'include' | 'exclude'
+		};
+	}
+	return {
+		deviceAndAppManagementAssignmentFilterId: null,
+		deviceAndAppManagementAssignmentFilterType: 'none' as const
+	};
+}
+
+export function buildAssignmentTarget(
+	group: GroupTarget,
+	filter: FilterConfig | null
+): AssignmentTarget {
+	const filterFields = buildFilterFields(filter);
+
+	switch (group.type) {
+		case 'group':
+			return {
+				'@odata.type': '#microsoft.graph.groupAssignmentTarget',
+				groupId: group.groupId!,
+				...filterFields
+			} satisfies GroupAssignmentTarget;
+		case 'allDevices':
+			return {
+				'@odata.type': '#microsoft.graph.allDevicesAssignmentTarget',
+				...filterFields
+			} satisfies AllDevicesAssignmentTarget;
+		case 'allUsers':
+			return {
+				'@odata.type': '#microsoft.graph.allLicensedUsersAssignmentTarget',
+				...filterFields
+			} satisfies AllLicensedUsersAssignmentTarget;
+	}
+}
+
+export function buildExclusionTarget(
+	group: GroupTarget,
+	filter: FilterConfig | null
+): ExclusionGroupAssignmentTarget {
+	const filterFields = buildFilterFields(filter);
+	return {
+		'@odata.type': '#microsoft.graph.exclusionGroupAssignmentTarget',
+		groupId: group.groupId!,
+		...filterFields
+	};
+}
+
+// ─── Conflict Lookup ───────────────────────────────────────────────
+
+function findConflictResolution(
+	conflicts: ConflictChoice[],
+	itemId: string,
+	targetKey: string
+): 'update' | 'skip' | null {
+	const match = conflicts.find((c) => c.itemId === itemId && c.targetKey === targetKey);
+	return match?.resolution ?? null;
+}
+
+// ─── App Assignment Merge ──────────────────────────────────────────
+
+export function mergeAppAssignments(params: MergeAppParams): MobileAppAssignment[] {
+	const { current, groups, exclusionGroups, intent, filter, conflicts, itemId } = params;
+
+	const existingByKey = new Map<string, MobileAppAssignment>();
+	for (const assignment of current) {
+		existingByKey.set(getTargetKey(assignment.target), assignment);
+	}
+
+	// Process inclusion groups
+	for (const group of groups) {
+		const target = buildAssignmentTarget(group, filter);
+		const key = getTargetKey(target);
+		const existing = existingByKey.get(key);
+
+		if (existing) {
+			const resolution = findConflictResolution(conflicts, itemId, key);
+			if (resolution === 'skip') {
+				continue;
+			}
+		}
+		existingByKey.set(key, {
+			id: '',
+			intent,
+			target,
+			settings: null
+		});
+	}
+
+	// Process exclusion groups
+	for (const group of exclusionGroups) {
+		const target = buildExclusionTarget(group, filter);
+		const key = getTargetKey(target);
+		const existing = existingByKey.get(key);
+
+		if (existing) {
+			const resolution = findConflictResolution(conflicts, itemId, key);
+			if (resolution === 'skip') {
+				continue;
+			}
+		}
+		existingByKey.set(key, {
+			id: '',
+			intent,
+			target,
+			settings: null
+		});
+	}
+
+	return Array.from(existingByKey.values());
+}
+
+// ─── Profile Assignment Merge ──────────────────────────────────────
+
+export function mergeProfileAssignments(
+	params: MergeProfileParams
+): ConfigurationPolicyAssignment[] {
+	const { current, groups, exclusionGroups, filter, conflicts, itemId } = params;
+
+	const existingByKey = new Map<string, ConfigurationPolicyAssignment>();
+	for (const assignment of current) {
+		existingByKey.set(getTargetKey(assignment.target), assignment);
+	}
+
+	// Process inclusion groups
+	for (const group of groups) {
+		const target = buildAssignmentTarget(group, filter);
+		const key = getTargetKey(target);
+		const existing = existingByKey.get(key);
+
+		if (existing) {
+			const resolution = findConflictResolution(conflicts, itemId, key);
+			if (resolution === 'skip') {
+				continue;
+			}
+		}
+		existingByKey.set(key, {
+			id: '',
+			intent: null,
+			target
+		});
+	}
+
+	// Process exclusion groups
+	for (const group of exclusionGroups) {
+		const target = buildExclusionTarget(group, filter);
+		const key = getTargetKey(target);
+		const existing = existingByKey.get(key);
+
+		if (existing) {
+			const resolution = findConflictResolution(conflicts, itemId, key);
+			if (resolution === 'skip') {
+				continue;
+			}
+		}
+		existingByKey.set(key, {
+			id: '',
+			intent: null,
+			target
+		});
+	}
+
+	return Array.from(existingByKey.values());
+}

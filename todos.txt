@@ -1,0 +1,1327 @@
+================================================================================
+INTUNE ASSIGNMENTS MANAGER — COMPLETE BUILD PLAN
+================================================================================
+
+PURPOSE:
+A web application for bulk-managing Microsoft Intune app and configuration profile
+assignments. The Microsoft Intune admin UI only supports assigning one app at a
+time, which is painful at scale. This app lets administrators assign multiple
+apps/profiles to multiple groups simultaneously using the MS Graph batch API,
+with full support for assignment filters, intent types, and the special
+"All Devices" / "All Users" virtual groups.
+
+TARGET USERS:
+IT administrators managing Intune environments. Users authenticate with their
+own Microsoft Entra ID (Azure AD) account. The app uses delegated permissions,
+so users can only do what their Entra roles allow.
+
+DEPLOYMENT:
+Hosted on Cloudflare Pages (free plan). No Docker, no self-hosting required.
+Users visit the URL, sign in with Microsoft, and start managing assignments.
+
+================================================================================
+TECH STACK
+================================================================================
+
+Framework:       SvelteKit 2.x with Svelte 5 (runes syntax: $state, $derived, $effect)
+Language:        TypeScript (strict, ES2022)
+Styling:         Tailwind CSS 4.x with OKLCH design tokens and @theme directive
+Build:           Vite 7.x
+Package Manager: pnpm
+Adapter:         @sveltejs/adapter-cloudflare (Cloudflare Pages with Workers)
+Auth:            @azure/msal-browser (MSAL.js v2 — client-side Entra ID OAuth2)
+Validation:      Zod (runtime schema validation for API responses and config)
+Icons:           Lucide (lucide-svelte)
+Fonts:           Geist Sans (body), JetBrains Mono (code/mono)
+Linting:         ESLint + Prettier + prettier-plugin-svelte + prettier-plugin-tailwindcss
+
+LOCAL DEVELOPMENT:
+- `pnpm dev` runs the standard Vite dev server with HMR (no Cloudflare dependency)
+- `wrangler pages dev` emulates the Cloudflare Workers runtime locally
+- The adapter-cloudflare only affects `pnpm build` output — dev works identically
+
+CLOUDFLARE FREE PLAN CONSTRAINTS:
+- 100,000 Worker function invocations/day (server routes count as invocations)
+- 10ms CPU time per request (I/O wait like Graph API calls does NOT count)
+- No Node.js built-in modules (use Web APIs: fetch, crypto, etc.)
+- No file system access
+- Static assets served from CDN (unlimited requests)
+
+================================================================================
+MICROSOFT GRAPH API REFERENCE
+================================================================================
+
+BASE URL: https://graph.microsoft.com/beta
+
+AUTHENTICATION:
+- OAuth2 Authorization Code flow with PKCE (handled by MSAL.js in the browser)
+- Delegated permissions (user context, not application context)
+- Access token passed as: Authorization: Bearer <token>
+
+REQUIRED DELEGATED PERMISSIONS:
+- User.Read                                  (sign-in and read user profile)
+- DeviceManagementApps.ReadWrite.All         (read/write mobile apps + assignments)
+- DeviceManagementConfiguration.ReadWrite.All (read/write config profiles + assignments)
+- Group.Read.All                             (list Azure AD groups for assignment targets)
+
+KEY ENDPOINTS:
+
+  List mobile apps:
+    GET /deviceAppManagement/mobileApps
+    Returns: { value: MobileApp[] }
+    Supports $filter, $search, $select, $top, $skip, $orderby, $count
+
+  Get app assignments:
+    GET /deviceAppManagement/mobileApps/{id}/assignments
+    Returns: { value: MobileAppAssignment[] }
+
+  Apply app assignments (REPLACE all assignments for an app):
+    POST /deviceAppManagement/mobileApps/{id}/assign
+    Body: { mobileAppAssignments: MobileAppAssignment[] }
+    NOTE: This REPLACES all assignments. To add/remove, fetch current first, modify, then POST.
+
+  List configuration policies (Settings Catalog):
+    GET /deviceManagement/configurationPolicies
+    Returns: { value: DeviceManagementConfigurationPolicy[] }
+
+  Get config policy assignments:
+    GET /deviceManagement/configurationPolicies/{id}/assignments
+    Returns: { value: DeviceManagementConfigurationPolicyAssignment[] }
+
+  Assign config policy:
+    POST /deviceManagement/configurationPolicies/{id}/assign
+    Body: { assignments: ConfigurationPolicyAssignment[] }
+
+  List groups:
+    GET /groups
+    Supports $filter, $search, $top, $select
+    NOTE: For $search to work, must include header: ConsistencyLevel: eventual
+
+  List assignment filters:
+    GET /deviceManagement/assignmentFilters
+    Returns: { value: DeviceAndAppManagementAssignmentFilter[] }
+
+  Batch API:
+    POST /$batch
+    Body: { requests: [ { id: "1", method: "GET|POST", url: "/path", body: {}, headers: {} } ] }
+    Returns: { responses: [ { id: "1", status: 200, body: {} } ] }
+    LIMIT: Max 20 requests per batch. For more, send multiple batches sequentially.
+    NOTE: Batch requests reference relative URLs (no https://graph.microsoft.com prefix)
+
+ASSIGNMENT DATA MODEL:
+
+  MobileAppAssignment:
+    {
+      "@odata.type": "#microsoft.graph.mobileAppAssignment",
+      "id": "string (read-only, set by Graph)",
+      "intent": "required" | "available" | "uninstall" | "availableWithoutEnrollment",
+      "target": AssignmentTarget,
+      "settings": null | { ... install deadline, restart settings ... }
+    }
+
+  AssignmentTarget (one of):
+    GroupAssignmentTarget:
+      { "@odata.type": "#microsoft.graph.groupAssignmentTarget", "groupId": "guid" }
+
+    AllDevicesAssignmentTarget:
+      { "@odata.type": "#microsoft.graph.allDevicesAssignmentTarget" }
+
+    AllLicensedUsersAssignmentTarget:
+      { "@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget" }
+
+    ExclusionGroupAssignmentTarget:
+      { "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget", "groupId": "guid" }
+
+  Assignment Filter (applied to any target):
+    Add to target object:
+      "deviceAndAppManagementAssignmentFilterId": "filter-guid",
+      "deviceAndAppManagementAssignmentFilterType": "include" | "exclude"
+
+SPECIAL GROUPS:
+- "All Devices" uses AllDevicesAssignmentTarget (no groupId needed)
+- "All Users" uses AllLicensedUsersAssignmentTarget (no groupId needed)
+- These are NOT real Azure AD groups — they are special target types in the Graph API
+
+RATE LIMITING:
+- Graph API returns HTTP 429 with a Retry-After header (seconds)
+- Implement exponential backoff: retry after Retry-After value, max 3 retries
+- Batch API may return 429 for individual requests within a batch
+
+================================================================================
+PHASE 13: DEPLOYMENT STATUS DASHBOARD ✅ COMPLETE
+================================================================================
+
+GOAL: Show per-device and per-setting deployment status for apps, configuration
+      profiles, and compliance policies. This is the #1 admin complaint — seeing
+      whether an app actually installed on a device, or which specific compliance
+      setting is failing, requires 5+ clicks per item in the Intune portal.
+
+PROBLEM THIS SOLVES:
+In the Intune admin center, to see which devices failed to install an app, you
+must: navigate to Apps > select app > Device install status. For compliance
+policies, you must: navigate to Compliance > select policy > Per-setting status.
+Each requires separate navigation and there's no unified view. Our tool will
+provide drill-down status directly from the existing app/profile detail pages
+and a dedicated status overview route.
+
+GRAPH API ENDPOINTS:
+
+  App installation status per device:
+    GET /deviceAppManagement/mobileApps/{id}/deviceStatuses
+    Returns: { value: MobileAppInstallStatus[] }
+    Properties: deviceName, deviceId, osVersion, osDescription,
+                installState (installed|failed|notInstalled|uninstallFailed|
+                pendingInstall|unknown|notApplicable),
+                installStateDetail, errorCode, lastSyncDateTime,
+                mobileAppInstallStatusValue, userName, userPrincipalName
+
+  App install summary:
+    GET /deviceAppManagement/mobileApps/{id}/installSummary
+    Returns: MobileAppInstallSummary
+    Properties: installedDeviceCount, failedDeviceCount,
+                notInstalledDeviceCount, notApplicableDeviceCount,
+                pendingInstallDeviceCount, installedUserCount,
+                failedUserCount, notInstalledUserCount,
+                notApplicableUserCount
+
+  Config profile device status (traditional device configurations):
+    GET /deviceManagement/deviceConfigurations/{id}/deviceStatuses
+    Returns: { value: DeviceConfigurationDeviceStatus[] }
+    Properties: deviceDisplayName, userName, status
+                (unknown|notApplicable|compliant|remediated|nonCompliant|
+                error|conflict|notAssigned), lastReportedDateTime,
+                userPrincipalName
+
+  Config profile status overview:
+    GET /deviceManagement/deviceConfigurations/{id}/deviceStatusOverview
+    Returns: DeviceConfigurationDeviceOverview
+    Properties: pendingCount, notApplicableCount, successCount,
+                errorCount, failedCount, lastUpdateDateTime,
+                configurationVersion
+
+  Compliance policy device status:
+    GET /deviceManagement/deviceCompliancePolicies/{id}/deviceStatuses
+    Returns: { value: DeviceComplianceDeviceStatus[] }
+    Properties: deviceDisplayName, userName, deviceModel, platform,
+                complianceGracePeriodExpirationDateTime, status,
+                lastReportedDateTime, userPrincipalName
+
+  Compliance per-setting status:
+    GET /deviceManagement/deviceCompliancePolicies/{id}/deviceSettingStateSummaries
+    Returns: { value: SettingStateDeviceSummary[] }
+    Properties: settingName, instancePath, compliantDeviceCount,
+                conflictDeviceCount, errorDeviceCount,
+                nonCompliantDeviceCount, notApplicableDeviceCount,
+                remediatedDeviceCount
+
+  Compliance per-setting per-device detail:
+    GET /deviceManagement/deviceCompliancePolicySettingStateSummaries/{id}/deviceComplianceSettingStates
+    Returns: { value: DeviceComplianceSettingState[] }
+    Properties: setting, settingName, deviceId, deviceName,
+                userId, userPrincipalName, state,
+                complianceGracePeriodExpirationDateTime
+
+PERMISSIONS:
+- DeviceManagementConfiguration.Read.All (already have ReadWrite)
+- DeviceManagementApps.Read.All (already have ReadWrite)
+
+STEPS:
+
+13.1 Define TypeScript types for status entities (src/lib/types/status.ts):
+     - MobileAppInstallStatus: deviceName, deviceId, osVersion,
+       installState (enum), installStateDetail, errorCode,
+       lastSyncDateTime, userName, userPrincipalName
+     - MobileAppInstallSummary: installedDeviceCount, failedDeviceCount,
+       notInstalledDeviceCount, notApplicableDeviceCount, pendingInstallDeviceCount
+     - DeviceConfigurationDeviceStatus: deviceDisplayName, userName,
+       status (enum), lastReportedDateTime, userPrincipalName
+     - DeviceConfigurationDeviceOverview: pendingCount, notApplicableCount,
+       successCount, errorCount, failedCount, lastUpdateDateTime
+     - DeviceComplianceDeviceStatus: deviceDisplayName, userName,
+       deviceModel, platform, status, lastReportedDateTime
+     - SettingStateDeviceSummary: settingName, compliantDeviceCount,
+       errorDeviceCount, nonCompliantDeviceCount, notApplicableDeviceCount
+     - DeviceComplianceSettingState: setting, settingName, deviceId,
+       deviceName, state, userPrincipalName
+
+13.2 Create Zod schemas for all status types (src/lib/types/status-schemas.ts):
+     - One schema per entity with runtime validation
+     - Reuse graphPagedResponseSchema wrapper
+
+13.3 Create status API module (src/lib/graph/status.ts):
+     - getAppInstallStatuses(client, appId): paginated device install status list
+     - getAppInstallSummary(client, appId): aggregate install counts
+     - getConfigDeviceStatuses(client, configId): config profile per-device status
+     - getConfigStatusOverview(client, configId): config profile aggregate counts
+     - getComplianceDeviceStatuses(client, policyId): compliance per-device status
+     - getComplianceSettingSummaries(client, policyId): per-setting summary
+     - getComplianceSettingStates(client, summaryId): per-setting per-device detail
+
+13.4 Add status tabs to existing app detail page (src/routes/apps/[id]/+page.svelte):
+     - New "Device Status" tab alongside existing "Assignments" tab
+     - Shows install summary card (installed/failed/pending/not applicable counts)
+     - Scrollable list of per-device install statuses
+     - Status badges: installed (green), failed (red), pending (yellow),
+       not applicable (gray)
+     - Search/filter by device name or user
+     - Click device row to see error details if failed
+
+13.5 Add status tabs to existing profile detail page
+     (src/routes/profiles/[id]/+page.svelte):
+     - "Device Status" tab with status overview card
+     - Per-device deployment status list
+     - Status badges matching Intune states
+
+13.6 Create new status overview route (src/routes/status/+page.svelte):
+     - Dashboard-style page with overall deployment health
+     - "Apps with failures" — list apps that have failed installs
+     - "Profiles with errors" — list profiles with deployment errors
+     - Quick navigation to drill into specific items
+     - Filterable by platform, status category
+
+13.7 Create status UI components:
+     - StatusSummaryCard.svelte — visual summary showing
+       success/failure/pending distribution with counts and percentages
+     - DeviceStatusRow.svelte — per-device status row with badge,
+       device name, user, last reported time
+     - SettingStatusRow.svelte — per-setting compliance status row
+
+FILES TO CREATE:
+- src/lib/types/status.ts
+- src/lib/types/status-schemas.ts
+- src/lib/graph/status.ts
+- src/routes/status/+page.svelte
+- src/lib/components/status/StatusSummaryCard.svelte
+- src/lib/components/status/DeviceStatusRow.svelte
+- src/lib/components/status/SettingStatusRow.svelte
+
+FILES TO MODIFY:
+- src/routes/apps/[id]/+page.svelte (add status tab)
+- src/routes/profiles/[id]/+page.svelte (add status tab)
+- src/routes/+layout.svelte (add Status nav link)
+
+
+================================================================================
+PHASE 14: DEVICE INVENTORY BROWSER
+================================================================================
+
+GOAL: Searchable, sortable device list showing managed device inventory with
+      key information admins check daily: compliance state, last sync time,
+      OS version, ownership type, and user assignment.
+
+PROBLEM THIS SOLVES:
+The Intune portal's device list is slow to load, filtering is limited and
+inconsistent, and viewing device details requires navigating to a separate
+page for each device. Admins frequently need to quickly find devices by name
+or check which devices haven't synced recently.
+
+GRAPH API ENDPOINTS:
+
+  List managed devices:
+    GET /deviceManagement/managedDevices
+    Supports: $filter (limited — deviceName eq/contains, managedDeviceOwnerType eq),
+              $select, $top, $skip, $orderby, $count
+    Returns: { value: ManagedDevice[] }
+    NOTE: $search is NOT supported. Implement client-side search for flexibility.
+
+  ManagedDevice key properties:
+    - id, deviceName, userDisplayName, userPrincipalName
+    - managedDeviceOwnerType (company|personal)
+    - operatingSystem, osVersion, deviceType
+    - complianceState (compliant|noncompliant|conflict|unknown|error|
+      inGracePeriod|configManager)
+    - lastSyncDateTime, enrolledDateTime
+    - model, manufacturer, serialNumber
+    - totalStorageSpaceInBytes, freeStorageSpaceInBytes
+    - managementAgent (eas|mdm|easMdm|intuneClient|easIntuneClient|
+      configurationManagerClient|configurationManagerClientMdm|unknown)
+    - isEncrypted, isSupervised
+    - azureADDeviceId, azureADRegistered
+    - emailAddress
+    - deviceRegistrationState
+
+PERMISSIONS:
+- DeviceManagementManagedDevices.Read.All (NEW — request via Phase 12 consent)
+
+STEPS:
+
+14.1 Define TypeScript types for managed devices (src/lib/types/device.ts):
+     - ManagedDevice: all key properties listed above
+     - ComplianceState enum
+     - DeviceOwnerType enum
+     - ManagementAgent enum
+     - DeviceType enum
+
+14.2 Create Zod schemas for device types (src/lib/types/device-schemas.ts):
+     - managedDeviceSchema with all properties
+     - Reuse graphPagedResponseSchema wrapper
+
+14.3 Create device API module (src/lib/graph/devices.ts):
+     - listDevices(client, options?): paginated device list with $top, $orderby
+     - getDevice(client, deviceId): single device by ID
+     - Options type with sort field, page size, filter
+
+14.4 Create devices list page (src/routes/devices/+page.svelte):
+     - Wrapped in AuthGuard AND PermissionGuard (from Phase 12)
+       with requiredScopes=['DeviceManagementManagedDevices.Read.All']
+     - PageHeader: "Devices" with device count
+     - SearchInput for client-side filtering by device name, user, serial number
+     - Sort options: Name A-Z, Name Z-A, Last Sync (newest), Last Sync (oldest),
+       Compliance State
+     - Filter chips: Platform (Windows/iOS/Android/macOS), Compliance State
+       (Compliant/Noncompliant/Unknown), Ownership (Corporate/Personal)
+     - DeviceRow for each device
+     - Pagination with "Load More" button
+     - Fetch 100 devices at a time (same pattern as apps/profiles)
+
+14.5 Create DeviceRow component (src/lib/components/ui/DeviceRow.svelte):
+     - Device name (bold), user name below
+     - Platform icon (Windows/Apple/Android)
+     - OS version text
+     - Compliance state badge: compliant (green), noncompliant (red),
+       unknown (gray), inGracePeriod (yellow)
+     - Last sync time as relative timestamp ("2 hours ago")
+     - Ownership badge (Corporate/Personal)
+     - Click navigates to /devices/[id]
+
+14.6 Create device utility functions (src/lib/utils/device-types.ts):
+     - getDeviceTypeInfo(deviceType): icon + label mapping
+     - getComplianceColor(state): color mapping for badges
+     - formatStorageSize(bytes): human-readable storage
+     - getOwnershipLabel(type): "Corporate" or "Personal"
+
+14.7 Add "Devices" navigation link to sidebar in src/routes/+layout.svelte
+
+FILES TO CREATE:
+- src/lib/types/device.ts
+- src/lib/types/device-schemas.ts
+- src/lib/graph/devices.ts
+- src/routes/devices/+page.svelte
+- src/lib/components/ui/DeviceRow.svelte
+- src/lib/utils/device-types.ts
+
+FILES TO MODIFY:
+- src/routes/+layout.svelte (add Devices nav link)
+
+
+================================================================================
+PHASE 15: SINGLE DEVICE 360° VIEW
+================================================================================
+
+GOAL: A unified device detail page showing everything about a single managed
+      device in one place: hardware info, compliance status per policy, assigned
+      apps with install status, assigned profiles with deployment status, group
+      memberships, and quick actions (sync, restart, retire).
+
+PROBLEM THIS SOLVES:
+In the Intune portal, to troubleshoot a device, admins must navigate between
+4+ separate tabs: Overview, Hardware, Compliance, Apps, Device configuration.
+Each tab loads separately. Our tool shows everything on one page with a single
+batch API call.
+
+GRAPH API ENDPOINTS:
+
+  Device detail:
+    GET /deviceManagement/managedDevices/{id}
+    Returns: ManagedDevice (full properties including hardware details)
+
+  Device compliance policy states:
+    GET /deviceManagement/managedDevices/{id}/deviceCompliancePolicyStates
+    Returns: { value: DeviceCompliancePolicyState[] }
+    Properties: displayName, settingCount, state, settingStates
+
+  Device configuration states:
+    GET /deviceManagement/managedDevices/{id}/deviceConfigurationStates
+    Returns: { value: DeviceConfigurationState[] }
+    Properties: displayName, settingCount, state, platformType, settingStates
+
+  Device detected apps:
+    GET /deviceManagement/managedDevices/{id}/detectedApps
+    Returns: { value: DetectedApp[] }
+    Properties: displayName, version, sizeInByte, deviceCount
+
+  Remote device actions (all POST, empty body, return 204):
+    /deviceManagement/managedDevices/{id}/syncDevice
+    /deviceManagement/managedDevices/{id}/rebootNow
+    /deviceManagement/managedDevices/{id}/retire
+    /deviceManagement/managedDevices/{id}/wipe
+    /deviceManagement/managedDevices/{id}/remoteLock
+    /deviceManagement/managedDevices/{id}/shutDown
+
+PERMISSIONS:
+- DeviceManagementManagedDevices.Read.All (Phase 14)
+- DeviceManagementManagedDevices.ReadWrite.All (for actions — NEW, request via
+  Phase 12 consent when user first attempts an action)
+- DeviceManagementConfiguration.Read.All (for policy states — already have)
+- DeviceManagementApps.Read.All (for app states — already have)
+
+STEPS:
+
+15.1 Define additional device types (extend src/lib/types/device.ts):
+     - DeviceCompliancePolicyState: displayName, state, settingCount,
+       settingStates array, policyId
+     - DeviceConfigurationState: displayName, state, settingCount,
+       platformType, settingStates array
+     - DeviceSettingState: settingName, state, currentValue, errorCode,
+       errorDescription
+     - DetectedApp: displayName, version, sizeInByte
+     - DeviceAction: 'syncDevice' | 'rebootNow' | 'retire' | 'wipe' |
+       'remoteLock' | 'shutDown'
+
+15.2 Create Zod schemas for new device-related types
+
+15.3 Extend device API module (src/lib/graph/devices.ts):
+     - getDeviceCompliancePolicyStates(client, deviceId)
+     - getDeviceConfigurationStates(client, deviceId)
+     - getDeviceDetectedApps(client, deviceId)
+     - syncDevice(client, deviceId)
+     - restartDevice(client, deviceId)
+     - retireDevice(client, deviceId)
+     - wipeDevice(client, deviceId)
+     - lockDevice(client, deviceId)
+     Use batch API to fetch detail + compliance + config + apps in one batch
+
+15.4 Create device detail page (src/routes/devices/[id]/+page.svelte):
+     - Wrapped in PermissionGuard for device read scope
+     - PageHeader with device name, user, and action buttons
+
+     Section 1 — Overview:
+       - Device name, model, manufacturer, serial number
+       - OS: type + version
+       - Enrolled: date, Last sync: relative time + absolute time
+       - Compliance: overall state badge
+       - Ownership: Corporate/Personal
+       - Storage: used/total with visual bar
+       - Encrypted: yes/no, Azure AD device ID
+
+     Section 2 — Compliance Policies:
+       - List of compliance policies targeting this device
+       - Each shows: policy name, state badge, setting count
+       - Expandable: per-setting status within each policy
+
+     Section 3 — Configuration Profiles:
+       - List of config profiles applied to this device
+       - Each shows: profile name, platform, state badge
+       - Expandable: per-setting detail
+
+     Section 4 — Apps:
+       - List of detected apps on the device
+       - Shows: app name, version, size
+
+     Section 5 — Quick Actions:
+       - Sync, Restart, Lock (non-destructive, blue/yellow)
+       - Retire, Wipe (destructive, red styling)
+       - Each uses ConfirmDialog before executing
+       - Destructive actions (retire, wipe) require typing device name
+       - Action buttons trigger PermissionGuard check for ReadWrite scope
+
+15.5 Create device detail components:
+     - DeviceOverviewCard.svelte — hardware and enrollment info
+     - DevicePolicyList.svelte — compliance/config policy states
+     - DeviceActionBar.svelte — quick action buttons with confirmation
+
+FILES TO CREATE:
+- src/routes/devices/[id]/+page.svelte
+- src/lib/components/devices/DeviceOverviewCard.svelte
+- src/lib/components/devices/DevicePolicyList.svelte
+- src/lib/components/devices/DeviceActionBar.svelte
+
+FILES TO MODIFY:
+- src/lib/types/device.ts (add policy state types)
+- src/lib/types/device-schemas.ts (add schemas)
+- src/lib/graph/devices.ts (add detail, policy states, and action functions)
+
+
+================================================================================
+PHASE 16: COMPLIANCE POLICY MANAGEMENT
+================================================================================
+
+GOAL: Browse compliance policies, view their assignments, and integrate them
+      into the existing bulk assignment wizard. Compliance policies follow the
+      exact same assignment model as apps and config profiles, completing the
+      "assignment trinity."
+
+PROBLEM THIS SOLVES:
+Compliance policies are a core part of every Intune deployment (they feed into
+Conditional Access). Our tool already manages assignments for apps and config
+profiles. Adding compliance policies means admins can manage ALL their key
+assignment types in one place.
+
+GRAPH API ENDPOINTS:
+
+  List compliance policies:
+    GET /deviceManagement/deviceCompliancePolicies
+    Supports: $filter, $select, $top, $skip, $orderby, $count
+    Returns: { value: DeviceCompliancePolicy[] }
+    Properties: id, displayName, description, createdDateTime,
+                lastModifiedDateTime, version, roleScopeTagIds,
+                @odata.type (discriminates platform)
+
+  Get compliance policy:
+    GET /deviceManagement/deviceCompliancePolicies/{id}
+
+  Get compliance policy assignments:
+    GET /deviceManagement/deviceCompliancePolicies/{id}/assignments
+    Same target model as apps/profiles
+
+  Assign compliance policy (REPLACE all):
+    POST /deviceManagement/deviceCompliancePolicies/{id}/assign
+    Body: { assignments: [ { target: AssignmentTarget } ] }
+
+  Compliance policy status overview:
+    GET /deviceManagement/deviceCompliancePolicies/{id}/deviceStatusOverview
+
+PERMISSIONS:
+- DeviceManagementConfiguration.ReadWrite.All (ALREADY HAVE)
+
+STEPS:
+
+16.1 Define TypeScript types (src/lib/types/compliance.ts):
+     - DeviceCompliancePolicy: id, displayName, description,
+       createdDateTime, lastModifiedDateTime, version,
+       roleScopeTagIds, @odata.type
+     - DeviceCompliancePolicyAssignment: id, target (same AssignmentTarget
+       types from graph.ts)
+     - CompliancePlatform type mapping @odata.type to platform names
+
+16.2 Create Zod schemas (src/lib/types/compliance-schemas.ts):
+     - deviceCompliancePolicySchema
+     - deviceCompliancePolicyAssignmentSchema
+     - Reuse existing assignmentTargetSchema from schemas.ts
+
+16.3 Create compliance API module (src/lib/graph/compliance.ts):
+     - listCompliancePolicies(client, options?): paginated list
+     - getCompliancePolicy(client, policyId): single policy
+     - getCompliancePolicyAssignments(client, policyId): assignment list
+     - assignCompliancePolicy(client, policyId, assignments): replace-all
+     Follow exact same pattern as configurations.ts
+
+16.4 Create compliance utility (src/lib/utils/compliance-types.ts):
+     - getCompliancePlatformInfo(odataType): icon + label mapping
+       * "#microsoft.graph.windows10CompliancePolicy" → "Windows 10/11"
+       * "#microsoft.graph.iosCompliancePolicy" → "iOS/iPadOS"
+       * "#microsoft.graph.androidCompliancePolicy" → "Android"
+       * "#microsoft.graph.macOSCompliancePolicy" → "macOS"
+       * "#microsoft.graph.androidWorkProfileCompliancePolicy" → "Android Work Profile"
+
+16.5 Create compliance policies list page (src/routes/compliance/+page.svelte):
+     - Same structure as /profiles page
+     - PageHeader: "Compliance Policies"
+     - SearchInput, sort options (A-Z, Z-A, By Platform)
+     - CompliancePolicyRow for each policy
+     - Click navigates to /compliance/[id]
+
+16.6 Create compliance policy detail page (src/routes/compliance/[id]/+page.svelte):
+     - Policy info at top: name, platform, description, version, dates
+     - "Assignments" tab with AssignmentRow components (reuse existing)
+     - "Device Status" tab with compliance device statuses (reuse from Phase 13)
+     - "Edit in Bulk Assign" button linking to wizard
+
+16.7 Create CompliancePolicyRow component (src/lib/components/ui/CompliancePolicyRow.svelte)
+
+16.8 Integrate into bulk assignment wizard:
+     - Update StepSelectItems.svelte: add third tab "Compliance Policies"
+     - Update wizard state (src/lib/types/wizard.ts): add selectedCompliancePolicies
+     - Update execute.ts: handle compliance policy items using
+       /deviceManagement/deviceCompliancePolicies/{id}/assign endpoint
+     - Update merge.ts: add mergeCompliancePolicyAssignments function
+
+16.9 Add "Compliance" navigation link to sidebar
+
+FILES TO CREATE:
+- src/lib/types/compliance.ts
+- src/lib/types/compliance-schemas.ts
+- src/lib/graph/compliance.ts
+- src/lib/utils/compliance-types.ts
+- src/routes/compliance/+page.svelte
+- src/routes/compliance/[id]/+page.svelte
+- src/lib/components/ui/CompliancePolicyRow.svelte
+
+FILES TO MODIFY:
+- src/lib/components/assignments/StepSelectItems.svelte (add compliance tab)
+- src/lib/types/wizard.ts (add selectedCompliancePolicies)
+- src/lib/graph/execute.ts (handle compliance policy assignment)
+- src/lib/graph/merge.ts (add compliance merge function)
+- src/routes/+layout.svelte (add Compliance nav link)
+
+
+================================================================================
+PHASE 17: ENDPOINT SECURITY POLICY MANAGEMENT
+================================================================================
+
+GOAL: Browse and manage endpoint security policies: antivirus, firewall, disk
+      encryption (BitLocker/FileVault), endpoint detection & response (EDR),
+      and attack surface reduction. These use the configurationPolicies API
+      that our app already integrates with.
+
+PROBLEM THIS SOLVES:
+Endpoint security policies are increasingly managed through Intune as
+organizations adopt Microsoft Defender. These policies use the same
+configurationPolicies API as Settings Catalog profiles. Our existing
+infrastructure handles most of the work — we just need categorization
+and dedicated views.
+
+GRAPH API ENDPOINTS:
+
+  List endpoint security policies (filtered configurationPolicies):
+    GET /deviceManagement/configurationPolicies
+      ?$filter=templateReference/templateFamily eq 'endpointSecurityAntivirus'
+    (Repeat for: endpointSecurityFirewall, endpointSecurityDiskEncryption,
+     endpointSecurityEndpointDetectionAndResponse,
+     endpointSecurityAttackSurfaceReduction, endpointSecurityAccountProtection)
+
+  Same assignment endpoints as existing config profiles:
+    GET /deviceManagement/configurationPolicies/{id}/assignments
+    POST /deviceManagement/configurationPolicies/{id}/assign
+
+  Policy settings:
+    GET /deviceManagement/configurationPolicies/{id}/settings
+
+PERMISSIONS:
+- DeviceManagementConfiguration.ReadWrite.All (ALREADY HAVE)
+
+NOTE: As of March 2025, Microsoft is migrating Windows endpoint security
+policies from the old /templates and /intents APIs to configurationPolicies.
+
+STEPS:
+
+17.1 Define endpoint security types (src/lib/types/security.ts):
+     - EndpointSecurityCategory: 'antivirus' | 'firewall' | 'diskEncryption' |
+       'endpointDetectionAndResponse' | 'attackSurfaceReduction' | 'accountProtection'
+     - SecurityPolicyInfo: category, templateFamily filter string, icon, label
+
+17.2 Create security utility (src/lib/utils/security-types.ts):
+     - SECURITY_CATEGORIES constant: array of metadata per category
+     - getSecurityCategoryInfo(templateFamily): category metadata
+     - isEndpointSecurityPolicy(policy): type guard
+
+17.3 Create security API functions (src/lib/graph/security.ts):
+     - listSecurityPolicies(client, category?): fetch filtered configurationPolicies
+     - getSecurityPolicySettings(client, policyId): fetch full settings
+     Reuse existing getConfigAssignments and assignConfigPolicy from configurations.ts
+
+17.4 Create security policies list page (src/routes/security/+page.svelte):
+     - PageHeader: "Endpoint Security"
+     - Category tabs: All, Antivirus, Firewall, Disk Encryption, EDR,
+       Attack Surface Reduction, Account Protection
+     - SearchInput for filtering by name
+     - Sort options: A-Z, Z-A, By Category
+
+17.5 Create security policy detail page (src/routes/security/[id]/+page.svelte):
+     - Policy info: name, category, platform, description
+     - "Assignments" tab (reuse AssignmentRow)
+     - "Settings" tab showing policy settings in readable format
+     - "Device Status" tab
+     - "Edit in Bulk Assign" button
+
+17.6 Integrate into bulk assignment wizard:
+     - Add "Endpoint Security" tab to StepSelectItems
+     - Uses same assign endpoint as config profiles
+
+17.7 Add "Security" navigation link to sidebar
+
+FILES TO CREATE:
+- src/lib/types/security.ts
+- src/lib/utils/security-types.ts
+- src/lib/graph/security.ts
+- src/routes/security/+page.svelte
+- src/routes/security/[id]/+page.svelte
+
+FILES TO MODIFY:
+- src/lib/components/assignments/StepSelectItems.svelte (add security tab)
+- src/lib/types/wizard.ts (add selectedSecurityPolicies if separate)
+- src/routes/+layout.svelte (add Security nav link)
+
+
+================================================================================
+PHASE 18: WINDOWS UPDATE RING MANAGEMENT
+================================================================================
+
+GOAL: Browse and manage Windows Update for Business configurations (update rings),
+      feature update profiles, quality update profiles, and driver update profiles.
+      View update deployment status per device and manage assignments.
+
+PROBLEM THIS SOLVES:
+Update ring management is a daily operations task. Admins need to check which
+update rings are deployed, verify deferral settings, see which devices are
+pending updates, and assign rings to new groups. The Intune portal spreads
+these across multiple sections.
+
+GRAPH API ENDPOINTS:
+
+  Windows Update for Business Configuration (Update Rings):
+    GET /deviceManagement/deviceConfigurations
+      ?$filter=isof('microsoft.graph.windowsUpdateForBusinessConfiguration')
+    Properties: displayName, description,
+                qualityUpdatesDeferralPeriodInDays (0-30),
+                featureUpdatesDeferralPeriodInDays (0-365),
+                qualityUpdatesPaused, featureUpdatesPaused,
+                deliveryOptimizationMode, driversExcluded,
+                allowWindows11Upgrade, deadlineForQualityUpdatesInDays,
+                deadlineForFeatureUpdatesInDays,
+                engagedRestartDeadlineInDays, updateNotificationLevel,
+                userPauseAccess, businessReadyUpdatesOnly
+    Assignments: GET /deviceManagement/deviceConfigurations/{id}/assignments
+    Assign: POST /deviceManagement/deviceConfigurations/{id}/assign
+    Device Status: GET /deviceManagement/deviceConfigurations/{id}/deviceStatuses
+
+  Windows Feature Update Profiles (beta):
+    GET /deviceManagement/windowsFeatureUpdateProfiles
+    Properties: displayName, featureUpdateVersion (e.g. "23H2"),
+                rolloutSettings (start/end dates, interval),
+                endOfSupportDate
+    Assign: POST /deviceManagement/windowsFeatureUpdateProfiles/{id}/assign
+
+  Windows Quality Update Profiles (beta):
+    GET /deviceManagement/windowsQualityUpdateProfiles
+    Properties: displayName, expeditedUpdateSettings
+                (qualityUpdateRelease, daysUntilForcedReboot),
+                releaseDateDisplayName
+    Assign: POST /deviceManagement/windowsQualityUpdateProfiles/{id}/assign
+
+  Windows Driver Update Profiles (beta):
+    GET /deviceManagement/windowsDriverUpdateProfiles
+    Properties: displayName, approvalType (manual|automatic),
+                deviceReporting, newUpdates, deploymentDeferralInDays
+    Assign: POST /deviceManagement/windowsDriverUpdateProfiles/{id}/assign
+    Driver Inventory: GET .../{id}/driverInventories
+
+PERMISSIONS:
+- DeviceManagementConfiguration.ReadWrite.All (ALREADY HAVE)
+
+STEPS:
+
+18.1 Define TypeScript types (src/lib/types/updates.ts):
+     - WindowsUpdateForBusinessConfiguration: all deferral, pause, deadline,
+       restart, and notification properties
+     - WindowsFeatureUpdateProfile: displayName, featureUpdateVersion,
+       rolloutSettings, endOfSupportDate
+     - WindowsQualityUpdateProfile: displayName, expeditedUpdateSettings,
+       releaseDateDisplayName
+     - WindowsDriverUpdateProfile: displayName, approvalType, deviceReporting,
+       newUpdates, deploymentDeferralInDays
+     - UpdateCategory: 'updateRing' | 'featureUpdate' | 'qualityUpdate' | 'driverUpdate'
+
+18.2 Create Zod schemas (src/lib/types/update-schemas.ts)
+
+18.3 Create updates API module (src/lib/graph/updates.ts):
+     - listUpdateRings(client)
+     - listFeatureUpdateProfiles(client)
+     - listQualityUpdateProfiles(client)
+     - listDriverUpdateProfiles(client)
+     - get/assign functions for each type
+     - getUpdateRingDeviceStatuses(client, ringId)
+
+18.4 Create updates list page (src/routes/updates/+page.svelte):
+     - PageHeader: "Windows Updates"
+     - Category tabs: Update Rings, Feature Updates, Quality Updates, Driver Updates
+     - Each tab shows searchable list
+     - UpdateRingRow: name, quality/feature deferral days, paused badge
+     - FeatureUpdateRow: name, target version, rollout dates
+     - QualityUpdateRow: name, release date, expedited indicator
+     - DriverUpdateRow: name, approval type, pending count
+
+18.5 Create update detail pages:
+     - /updates/rings/[id] — ring settings, assignments, device status
+     - /updates/feature/[id] — feature update detail
+     - /updates/quality/[id] — quality update detail
+     - /updates/drivers/[id] — driver update detail
+
+18.6 Create update utility (src/lib/utils/update-types.ts):
+     - formatDeferralPeriod(days)
+     - getUpdateCategoryInfo(category): icon + label
+
+18.7 Integrate into bulk assignment wizard:
+     - Add "Update Rings" tab to StepSelectItems
+     - Handle different assign endpoints per update type
+
+18.8 Add "Updates" navigation link to sidebar
+
+FILES TO CREATE:
+- src/lib/types/updates.ts
+- src/lib/types/update-schemas.ts
+- src/lib/graph/updates.ts
+- src/lib/utils/update-types.ts
+- src/routes/updates/+page.svelte
+- src/routes/updates/rings/[id]/+page.svelte
+- src/routes/updates/feature/[id]/+page.svelte
+- src/routes/updates/quality/[id]/+page.svelte
+- src/routes/updates/drivers/[id]/+page.svelte
+
+FILES TO MODIFY:
+- src/lib/components/assignments/StepSelectItems.svelte (add updates tab)
+- src/lib/types/wizard.ts (add selectedUpdateRings)
+- src/lib/graph/execute.ts (handle update ring assignment)
+- src/routes/+layout.svelte (add Updates nav link)
+
+
+================================================================================
+PHASE 19: POLICY COMPARISON & DIFF TOOL
+================================================================================
+
+GOAL: Side-by-side comparison of any two policies of the same type. Highlights
+      differences in settings, assignments, and configuration. Enables admins
+      to audit policy drift, verify regional consistency, and identify conflicts.
+
+PROBLEM THIS SOLVES:
+The Intune portal has NO policy comparison capability. IntuneDiff.com was built
+as a standalone third-party tool specifically because this feature is missing.
+Admins regularly need to compare policies to find conflicts or verify
+consistency. Building this into our tool means one less tool in the toolkit.
+
+GRAPH API ENDPOINTS:
+
+  Configuration policy settings:
+    GET /deviceManagement/configurationPolicies/{id}/settings
+    Returns: { value: DeviceManagementConfigurationSetting[] }
+
+  Compliance policy (full definition with platform-specific settings):
+    GET /deviceManagement/deviceCompliancePolicies/{id}
+
+  Assignment data from all prior phases for assignment comparison
+
+PERMISSIONS:
+- DeviceManagementConfiguration.Read.All (ALREADY HAVE)
+
+STEPS:
+
+19.1 Create comparison types (src/lib/types/compare.ts):
+     - PolicyComparisonResult: leftPolicy, rightPolicy, settingDiffs,
+       assignmentDiffs, summary
+     - SettingDiff: settingName, settingDefinitionId, leftValue, rightValue,
+       status ('identical'|'changed'|'added'|'removed')
+     - AssignmentDiff: targetName, leftAssignment, rightAssignment, status
+
+19.2 Create comparison utility (src/lib/utils/policy-compare.ts):
+     - comparePolicySettings(leftSettings, rightSettings): SettingDiff[]
+     - comparePolicyAssignments(leftAssignments, rightAssignments): AssignmentDiff[]
+     - generateComparisonSummary(diffs): counts by status
+
+19.3 Extend configurations API (src/lib/graph/configurations.ts):
+     - getConfigPolicySettings(client, policyId): fetch setting instances
+
+19.4 Create comparison page (src/routes/compare/+page.svelte):
+     - Two-panel selector: left policy and right policy
+     - Policy type selector: Config Profiles, Compliance, Endpoint Security
+     - "Compare" button
+     - Results: summary bar, filter (All/Changed/Added/Removed),
+       side-by-side setting table, assignment comparison section
+     - Color-coded: green (added), red (removed), yellow (changed), gray (identical)
+
+19.5 Create comparison components:
+     - PolicySelector.svelte — searchable dropdown for policy selection
+     - SettingDiffRow.svelte — side-by-side setting row
+     - ComparisonSummaryBar.svelte — summary counts + filter buttons
+     - AssignmentDiffTable.svelte — assignment comparison
+
+19.6 Add export: "Export Diff" CSV with all differences
+
+19.7 Add "Compare" navigation link to sidebar
+
+FILES TO CREATE:
+- src/lib/types/compare.ts
+- src/lib/utils/policy-compare.ts
+- src/routes/compare/+page.svelte
+- src/lib/components/compare/PolicySelector.svelte
+- src/lib/components/compare/SettingDiffRow.svelte
+- src/lib/components/compare/ComparisonSummaryBar.svelte
+- src/lib/components/compare/AssignmentDiffTable.svelte
+
+FILES TO MODIFY:
+- src/lib/graph/configurations.ts (add getConfigPolicySettings)
+- src/routes/+layout.svelte (add Compare nav link)
+
+
+================================================================================
+PHASE 20: REMEDIATION SCRIPTS (PROACTIVE REMEDIATIONS)
+================================================================================
+
+GOAL: Browse, view, assign, and monitor device health scripts (proactive
+      remediations). Assignment follows the same replace-all pattern.
+
+PROBLEM THIS SOLVES:
+Proactive remediations are powerful but managing them in the portal is tedious.
+Viewing per-device execution results requires excessive navigation. Bulk
+assignment isn't well-supported in the UI.
+
+GRAPH API ENDPOINTS:
+
+  List device health scripts:
+    GET /deviceManagement/deviceHealthScripts
+    Properties: id, displayName, description, publisher,
+                detectionScriptContent (base64), remediationScriptContent (base64),
+                runAsAccount (system|user), enforceSignatureCheck, runAs32Bit
+
+  Script assignments:
+    GET /deviceManagement/deviceHealthScripts/{id}/assignments
+    Properties: id, target, runRemediationScript (bool), runSchedule
+
+  Assign (REPLACE all):
+    POST /deviceManagement/deviceHealthScripts/{id}/assign
+    Body: { deviceHealthScriptAssignments: [ { target, runRemediationScript,
+            runSchedule } ] }
+
+  Execution status per device:
+    GET /deviceManagement/deviceHealthScripts/{id}/deviceRunStates
+    Properties: detectionState, remediationState, lastStateUpdateDateTime,
+                preRemediationDetectionScriptOutput, remediationScriptError,
+                managedDevice (nested)
+
+  Run summary:
+    GET /deviceManagement/deviceHealthScripts/{id}/runSummary
+    Properties: noIssueDetectedDeviceCount, issueDetectedDeviceCount,
+                issueRemediatedDeviceCount, issueReoccurredDeviceCount
+
+PERMISSIONS:
+- DeviceManagementConfiguration.ReadWrite.All (ALREADY HAVE)
+
+STEPS:
+
+20.1 Define TypeScript types (src/lib/types/remediation.ts)
+20.2 Create Zod schemas (src/lib/types/remediation-schemas.ts)
+20.3 Create remediation API module (src/lib/graph/remediations.ts):
+     - listRemediationScripts, getRemediationScript, getRemediationAssignments,
+       assignRemediation, getRemediationDeviceStates, getRemediationRunSummary
+
+20.4 Create list page (src/routes/remediations/+page.svelte):
+     - SearchInput, sort by name/last modified
+     - RemediationRow: name, publisher, run-as, isGlobalScript badge
+
+20.5 Create detail page (src/routes/remediations/[id]/+page.svelte):
+     - "Scripts" tab: decoded base64 content with syntax highlighting
+     - "Assignments" tab (reuse AssignmentRow)
+     - "Device Status" tab: run summary + per-device execution list
+
+20.6 Create RemediationRow component
+20.7 Integrate into bulk assignment wizard (additional config for
+     runRemediationScript and runSchedule in StepConfigure)
+20.8 Add "Remediations" nav link
+
+FILES TO CREATE:
+- src/lib/types/remediation.ts
+- src/lib/types/remediation-schemas.ts
+- src/lib/graph/remediations.ts
+- src/routes/remediations/+page.svelte
+- src/routes/remediations/[id]/+page.svelte
+- src/lib/components/ui/RemediationRow.svelte
+
+FILES TO MODIFY:
+- src/lib/components/assignments/StepSelectItems.svelte (add remediations tab)
+- src/lib/components/assignments/StepConfigure.svelte (add remediation config)
+- src/lib/types/wizard.ts (add selectedRemediations, remediationConfig)
+- src/lib/graph/execute.ts (handle remediation assignment)
+- src/routes/+layout.svelte (add nav link)
+
+
+================================================================================
+PHASE 21: BULK DEVICE ACTIONS
+================================================================================
+
+GOAL: Execute device management actions (sync, restart, lock, retire, wipe)
+      on multiple devices simultaneously using the batch API, with safety
+      confirmations for destructive actions.
+
+PROBLEM THIS SOLVES:
+The Intune portal's bulk device actions are capped at 100 devices and support
+limited action types. Admins managing thousands of devices need to act on
+hundreds at once — currently requiring PowerShell scripts.
+
+GRAPH API ENDPOINTS:
+
+  Device actions (all POST, empty body, return 204):
+    /deviceManagement/managedDevices/{id}/syncDevice
+    /deviceManagement/managedDevices/{id}/rebootNow
+    /deviceManagement/managedDevices/{id}/remoteLock
+    /deviceManagement/managedDevices/{id}/retire
+    /deviceManagement/managedDevices/{id}/wipe
+    /deviceManagement/managedDevices/{id}/shutDown
+    /deviceManagement/managedDevices/{id}/resetPasscode
+
+  Batch execution: POST /$batch with up to 20 actions per batch
+
+PERMISSIONS:
+- DeviceManagementManagedDevices.ReadWrite.All (Phase 15 consent)
+
+STEPS:
+
+21.1 Define action types (extend src/lib/types/device.ts):
+     - DeviceActionInfo: action, label, description, icon, destructive,
+       requiresConfirmation
+     - BulkActionProgress: total, completed, succeeded, failed, results
+     - ActionResult: deviceId, deviceName, action, status, error
+
+21.2 Create device actions API (src/lib/graph/device-actions.ts):
+     - executeDeviceAction(client, deviceId, action): single action
+     - executeBulkDeviceActions(client, deviceIds, action, onProgress):
+       batch execution with chunking (20 per batch)
+     - Progress callback, retry logic for 5xx and 429
+
+21.3 Update devices list page (src/routes/devices/+page.svelte):
+     - Multi-select checkboxes on each DeviceRow
+     - "Select All on Page" checkbox
+     - Selected count display
+     - Action toolbar when devices selected:
+       * Sync (blue), Restart (yellow), Lock (yellow)
+       * Retire (red), Wipe (red)
+     - Destructive actions require enhanced confirmation:
+       * Red warning, list affected devices
+       * For wipe: checkbox acknowledgement
+       * For large batches (10+): type action name to confirm
+
+21.4 Create BulkActionDialog component
+     (src/lib/components/devices/BulkActionDialog.svelte):
+     - Confirmation → progress → results flow
+     - Per-device result list, "Retry Failed" button
+
+21.5 Create action utility (src/lib/utils/device-actions.ts)
+
+FILES TO CREATE:
+- src/lib/graph/device-actions.ts
+- src/lib/components/devices/BulkActionDialog.svelte
+- src/lib/utils/device-actions.ts
+
+FILES TO MODIFY:
+- src/lib/types/device.ts (add action types)
+- src/routes/devices/+page.svelte (add multi-select and action toolbar)
+- src/lib/components/ui/DeviceRow.svelte (add checkbox)
+
+
+================================================================================
+PHASE 22: WINDOWS AUTOPILOT MANAGEMENT
+================================================================================
+
+GOAL: Browse Windows Autopilot device identities, view deployment profiles,
+      and manage profile assignments.
+
+PROBLEM THIS SOLVES:
+Autopilot device management is buried under Devices > Enrollment > Windows in
+the Intune portal. CSV-based operations are common but tedious.
+
+GRAPH API ENDPOINTS:
+
+  List Autopilot devices:
+    GET /deviceManagement/windowsAutopilotDeviceIdentities
+    Properties: id, groupTag, serialNumber, manufacturer, model,
+                enrollmentState, lastContactedDateTime,
+                deploymentProfileAssignmentStatus
+
+  Deployment profiles:
+    GET /deviceManagement/windowsAutopilotDeploymentProfiles
+    Properties: id, displayName, description, deviceNameTemplate,
+                preprovisioningAllowed, outOfBoxExperienceSettings
+
+  Profile assignments:
+    GET /deviceManagement/windowsAutopilotDeploymentProfiles/{id}/assignments
+    POST /deviceManagement/windowsAutopilotDeploymentProfiles/{id}/assign
+
+  Update device properties:
+    POST /deviceManagement/windowsAutopilotDeviceIdentities/{id}/updateDeviceProperties
+    Body: { userPrincipalName, groupTag, displayName }
+
+PERMISSIONS:
+- DeviceManagementEnrollment.Read.All (NEW — request via Phase 12 consent)
+
+STEPS:
+
+22.1 Define types (src/lib/types/autopilot.ts)
+22.2 Create Zod schemas (src/lib/types/autopilot-schemas.ts)
+22.3 Create API module (src/lib/graph/autopilot.ts)
+
+22.4 Create Autopilot page (src/routes/autopilot/+page.svelte):
+     - Wrapped in PermissionGuard for enrollment scope
+     - "Devices" tab and "Deployment Profiles" tab
+     - Devices: search by serial/model/group tag, enrollment state badges
+     - Profiles: name, device name template, pre-provisioning badge
+
+22.5 Create device detail (src/routes/autopilot/devices/[id]/+page.svelte)
+22.6 Create profile detail (src/routes/autopilot/profiles/[id]/+page.svelte)
+22.7 Add "Autopilot" nav link
+
+FILES TO CREATE:
+- src/lib/types/autopilot.ts
+- src/lib/types/autopilot-schemas.ts
+- src/lib/graph/autopilot.ts
+- src/routes/autopilot/+page.svelte
+- src/routes/autopilot/devices/[id]/+page.svelte
+- src/routes/autopilot/profiles/[id]/+page.svelte
+
+FILES TO MODIFY:
+- src/routes/+layout.svelte (add Autopilot nav link)
+
+
+================================================================================
+PHASE 23: ENHANCED REPORTING & EXPORT
+================================================================================
+
+GOAL: A dedicated reporting hub with pre-built reports for common admin needs.
+      All reports exportable to CSV.
+
+PROBLEM THIS SOLVES:
+Intune's built-in reporting is widely criticized. Admins need custom reports
+that aggregate data across multiple items — which devices are non-compliant
+and why, which apps have failed installs, which policies have no assignments.
+
+DATA SOURCES (reuse APIs from earlier phases):
+  App install summaries, compliance status overviews, config profile status
+  overviews, device list with compliance and sync data, assignment data.
+
+PERMISSIONS:
+- All covered by existing permissions from prior phases
+
+STEPS:
+
+23.1 Define report types (src/lib/types/reports.ts):
+     - ReportType enum, ReportConfig, and result types per report
+     - AppDeploymentReport, ComplianceSummaryReport, UnassignedItem, StaleDevice
+
+23.2 Create report generation utilities (src/lib/utils/reports.ts):
+     - generateAppDeploymentReport(client): batch-fetch install summaries
+     - generateComplianceSummaryReport(client): batch-fetch status overviews
+     - generateUnassignedItemsReport(client): find items with isAssigned===false
+     - generateStaleDevicesReport(client, staleDays): devices with old lastSync
+     - generateFailedDeploymentsReport(client): items with failed counts > 0
+
+23.3 Create reports hub (src/routes/reports/+page.svelte):
+     - Grid of report cards:
+       1. App Deployment Summary
+       2. Compliance Summary
+       3. Unassigned Items (orphaned apps/profiles/policies)
+       4. Stale Devices (not synced in 30+ days)
+       5. Failed Deployments
+       6. Assignment Coverage
+
+23.4 Create report viewer (src/routes/reports/[type]/+page.svelte):
+     - Dynamic page, sortable data table, filter/search, summary stats bar
+     - "Export to CSV" button, color-coded status indicators
+
+23.5 Create report components:
+     - ReportCard.svelte, ReportTable.svelte, ReportSummaryBar.svelte
+
+23.6 Add "Reports" nav link
+
+FILES TO CREATE:
+- src/lib/types/reports.ts
+- src/lib/utils/reports.ts
+- src/routes/reports/+page.svelte
+- src/routes/reports/[type]/+page.svelte
+- src/lib/components/reports/ReportCard.svelte
+- src/lib/components/reports/ReportTable.svelte
+- src/lib/components/reports/ReportSummaryBar.svelte
+
+FILES TO MODIFY:
+- src/routes/+layout.svelte (add Reports nav link)
+
+
+================================================================================
+PHASE 24: PLATFORM SCRIPTS MANAGEMENT
+================================================================================
+
+GOAL: Browse, view, assign, and monitor PowerShell scripts deployed via Intune
+      (platform scripts / device management scripts).
+
+PROBLEM THIS SOLVES:
+Platform scripts are widely used for one-time configuration tasks but the portal
+provides minimal visibility into execution status. Admins don't know which
+devices successfully ran a script without excessive navigation.
+
+GRAPH API ENDPOINTS:
+
+  List scripts:
+    GET /deviceManagement/deviceManagementScripts
+    Properties: id, displayName, description, scriptContent (base64),
+                runAsAccount, enforceSignatureCheck, fileName, runAs32Bit
+
+  Assignments:
+    GET /deviceManagement/deviceManagementScripts/{id}/assignments
+    POST /deviceManagement/deviceManagementScripts/{id}/assign (REPLACE all)
+
+  Device run states:
+    GET /deviceManagement/deviceManagementScripts/{id}/deviceRunStates
+    Properties: runState, resultMessage, errorCode, managedDevice (nested)
+
+  Run summary:
+    GET /deviceManagement/deviceManagementScripts/{id}/runSummary
+    Properties: successDeviceCount, errorDeviceCount
+
+PERMISSIONS:
+- DeviceManagementConfiguration.ReadWrite.All (ALREADY HAVE)
+
+STEPS:
+
+24.1 Define types (src/lib/types/scripts.ts)
+24.2 Create Zod schemas (src/lib/types/script-schemas.ts)
+24.3 Create API module (src/lib/graph/scripts.ts)
+
+24.4 Create list page (src/routes/scripts/+page.svelte):
+     - SearchInput, sort by name/last modified
+     - ScriptRow: name, filename, run-as, 32-bit badge
+
+24.5 Create detail page (src/routes/scripts/[id]/+page.svelte):
+     - "Script Content" tab: decoded base64, monospace, copy-to-clipboard
+     - "Assignments" tab (reuse AssignmentRow)
+     - "Device Status" tab: run summary + per-device execution list
+
+24.6 Create ScriptRow component
+24.7 Integrate into bulk assignment wizard
+24.8 Add "Scripts" nav link
+
+FILES TO CREATE:
+- src/lib/types/scripts.ts
+- src/lib/types/script-schemas.ts
+- src/lib/graph/scripts.ts
+- src/routes/scripts/+page.svelte
+- src/routes/scripts/[id]/+page.svelte
+- src/lib/components/ui/ScriptRow.svelte
+
+FILES TO MODIFY:
+- src/lib/components/assignments/StepSelectItems.svelte (add scripts tab)
+- src/lib/types/wizard.ts (add selectedScripts)
+- src/lib/graph/execute.ts (handle script assignment)
+- src/routes/+layout.svelte (add Scripts nav link)
+
+
+================================================================================
+NAVIGATION RESTRUCTURE NOTE
+================================================================================
+
+With 13 new feature areas, the sidebar needs restructuring into grouped
+sections. Recommended layout (implement as part of Phase 13 or as a
+preliminary step):
+
+  HOME
+    Dashboard
+
+  MANAGEMENT
+    Apps
+    Config Profiles
+    Compliance Policies
+    Endpoint Security
+    Windows Updates
+    Remediation Scripts
+    Platform Scripts
+
+  DEVICES
+    Device Inventory
+    Autopilot
+
+  TOOLS
+    Bulk Assign
+    Policy Compare
+    Reports
+    Audit Log
+
+  SETTINGS
+    Permissions & Consent
+
+
+
+
+
+================================================================================
+END OF EXPANDED BUILD PLAN
+================================================================================
+
+
+
+
+Consume todos.txt and follow all instructions within it. We are now ready to plan out and implement Phase 13. Please make a comprehensive implementation plan for all tasks listed within the phase, ensuring we are comforming with all defined ADRs in todos.txt. Make use of subagents and agent teams where appropriate during the planning and implementation phases once the plan is approved. Ensure the todos.txt file is updated to mark each phase as complete once it is completed and ensure this initial prompt is included on any plan produced so it is not lost during context compaction. Ensure all text above the Phase section is read and instructions within it is followed.

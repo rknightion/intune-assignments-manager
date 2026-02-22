@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://m7kni.io/intune-assignments-manager/sitemap.xml
