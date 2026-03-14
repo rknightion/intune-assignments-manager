@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@azure/msal-browser':
         specifier: ^5.2.0
-        version: 5.2.0
+        version: 5.5.0
       '@fontsource-variable/jetbrains-mono':
         specifier: ^5.2.8
         version: 5.2.8
@@ -81,12 +81,12 @@ importers:
 
 packages:
 
-  '@azure/msal-browser@5.2.0':
-    resolution: {integrity: sha512-YP2XEo6Bsi9urkyWxe5s2yl0ZJhJ46BJjUYIhXe6TUQguj460+wFioztwNAGgL33ECn/s3p0UK6CAQDJ5K7bnw==}
+  '@azure/msal-browser@5.5.0':
+    resolution: {integrity: sha512-ImdTOyk8ISv1HMJez2dR0E3D9mBn0lpRieUGXjMGKgI2Ufs7NoIdeSKzm1JUTF0NyJaVbnANplcNLzJiO1G73w==}
     engines: {node: '>=0.8.0'}
 
-  '@azure/msal-common@16.0.4':
-    resolution: {integrity: sha512-0KZ9/wbUyZN65JLAx5bGNfWjkD0kRMUgM99oSpZFg7wEOb3XcKIiHrFnIpgyc8zZ70fHodyh8JKEOel1oN24Gw==}
+  '@azure/msal-common@16.3.0':
+    resolution: {integrity: sha512-qNc/noEts5Kf6oLtbuLEg1PkmM+GXEQlxC5VCrmCFbDo3Xyg5hDR3UFR2jZ8MK76epGuBWKSWoa2rCIYZVp5AQ==}
     engines: {node: '>=0.8.0'}
 
   '@cloudflare/kv-asset-handler@0.4.2':
@@ -139,8 +139,8 @@ packages:
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
     engines: {node: '>=12'}
 
-  '@emnapi/runtime@1.8.1':
-    resolution: {integrity: sha512-mehfKSMWjjNol8659Z8KxEMrdSJDDot5SXMq00dM8BN4o+CLNXQ0xH2V7EchNHV4RmbZLmmPdEaXZc5H2FXmDg==}
+  '@emnapi/runtime@1.9.0':
+    resolution: {integrity: sha512-QN75eB0IH2ywSpRpNddCRfQIhmJYBCJ1x5Lb3IscKAL8bMnVAKnRg8dCoXbHzVLLH7P38N2Z3mtulB7W0J0FKw==}
 
   '@esbuild/aix-ppc64@0.27.3':
     resolution: {integrity: sha512-9fJMTNFTWZMh5qwrBItuziu834eOCUcEqymSH7pY+zoMVEZg3gcPuBNxH1EvfVYe9h0x/Ptw8KBzv7qxb7l8dg==}
@@ -359,8 +359,8 @@ packages:
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
 
-  '@img/colour@1.0.0':
-    resolution: {integrity: sha512-A5P/LfWGFSl6nsckYtjw9da+19jB8hkJ6ACTGcDfEJ0aE+l2n2El7dsVM7UVHZQ9s2lmYMWlrS21YLy2IR1LUw==}
+  '@img/colour@1.1.0':
+    resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
     engines: {node: '>=18'}
 
   '@img/sharp-darwin-arm64@0.34.5':
@@ -1679,11 +1679,11 @@ packages:
 
 snapshots:
 
-  '@azure/msal-browser@5.2.0':
+  '@azure/msal-browser@5.5.0':
     dependencies:
-      '@azure/msal-common': 16.0.4
+      '@azure/msal-common': 16.3.0
 
-  '@azure/msal-common@16.0.4': {}
+  '@azure/msal-common@16.3.0': {}
 
   '@cloudflare/kv-asset-handler@0.4.2': {}
 
@@ -1714,7 +1714,7 @@ snapshots:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
 
-  '@emnapi/runtime@1.8.1':
+  '@emnapi/runtime@1.9.0':
     dependencies:
       tslib: 2.8.1
     optional: true
@@ -1846,7 +1846,7 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.3': {}
 
-  '@img/colour@1.0.0': {}
+  '@img/colour@1.1.0': {}
 
   '@img/sharp-darwin-arm64@0.34.5':
     optionalDependencies:
@@ -1930,7 +1930,7 @@ snapshots:
 
   '@img/sharp-wasm32@0.34.5':
     dependencies:
-      '@emnapi/runtime': 1.8.1
+      '@emnapi/runtime': 1.9.0
     optional: true
 
   '@img/sharp-win32-arm64@0.34.5':
@@ -2770,7 +2770,7 @@ snapshots:
 
   sharp@0.34.5:
     dependencies:
-      '@img/colour': 1.0.0
+      '@img/colour': 1.1.0
       detect-libc: 2.1.2
       semver: 7.7.4
     optionalDependencies:
