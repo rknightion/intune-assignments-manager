@@ -12,6 +12,16 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Workflow-level, not just on the build job: `svelte-kit sync` generates the
+# types for `$env/static/public` from the environment, so without this
+# svelte-check fails with "Module '$env/static/public' has no exported member
+# PUBLIC_ENTRA_CLIENT_ID" even though the build would have been fine.
+#
+# The value is inert. The real client id is per-deployment config in Cloudflare
+# Pages, and this app is client-side only with no server secrets.
+env:
+  PUBLIC_ENTRA_CLIENT_ID: 00000000-0000-0000-0000-000000000000
+
 jobs:
   lint:
     name: eslint / prettier
@@ -86,12 +96,10 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # $env/static/public resolves at build time, so the build fails outright
-      # without this. The value is inert - the real client id is configured per
-      # deployment in Cloudflare Pages, and this app has no server-side secrets.
+      # PUBLIC_ENTRA_CLIENT_ID comes from the workflow-level env above -
+      # $env/static/public resolves at build time and Rollup fails outright
+      # without it.
       - name: Build
-        env:
-          PUBLIC_ENTRA_CLIENT_ID: 00000000-0000-0000-0000-000000000000
         run: pnpm build
 
   # Single required check for the branch ruleset. Adding or renaming a job above
