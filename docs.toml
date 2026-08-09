@@ -79,8 +79,6 @@ Reference = [
 Changelog = "changelog.md"
 
 [assets]
-favicon = "assets/favicon.png"
-logo_icon = "material/microsoft-azure"
 social_image = "assets/social-card.png"
 social_image_alt = "Intune Assignments Manager social preview card"
 extra_css = [
