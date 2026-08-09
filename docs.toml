@@ -24,6 +24,7 @@ Home = "index.md"
     "getting-started.md",
     { Authentication = "authentication.md" },
     { Permissions = "permissions.md" },
+    { Security = "security.md" },
 ]
 
 [[site.nav]]
@@ -70,6 +71,8 @@ Development = [
 Reference = [
     { "CSV Format" = "csv.md" },
     { FAQ = "faq.md" },
+    { Troubleshooting = "troubleshooting.md" },
+    { "When to Use This" = "comparison.md" },
 ]
 
 [[site.nav]]
