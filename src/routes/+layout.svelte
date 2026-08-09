@@ -195,12 +195,10 @@
 			class="bg-sidebar fixed top-0 left-0 z-50 flex h-full w-60 flex-col transition-transform duration-200 ease-out md:translate-x-0 {sidebarOpen
 				? 'max-md:translate-x-0'
 				: 'max-md:-translate-x-full'}"
+			style="background-image: linear-gradient(180deg, var(--color-sidebar-top) 0%, var(--color-sidebar) 100%);"
 		>
-			<!-- Logo area with subtle gradient -->
-			<div
-				class="flex h-14 items-center gap-2 px-5"
-				style="background: linear-gradient(135deg, oklch(0.22 0.03 260) 0%, transparent 100%);"
-			>
+			<!-- Logo area -->
+			<div class="flex h-14 items-center gap-2 px-5">
 				<div class="bg-accent flex h-8 w-8 items-center justify-center rounded-lg">
 					<Layers size={18} class="text-white" />
 				</div>
