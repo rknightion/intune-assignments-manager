@@ -86,12 +86,12 @@ distinct from a `401`, which means the token itself was rejected.
 
 **Check**: Go to **Settings** and compare the granted tiers against what the operation needs:
 
-| Operation | Required scopes |
-| --- | --- |
-| Read-only browsing | `DeviceManagementApps.Read.All`, `DeviceManagementConfiguration.Read.All` |
+| Operation                                       | Required scopes                                                                     |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Read-only browsing                              | `DeviceManagementApps.Read.All`, `DeviceManagementConfiguration.Read.All`           |
 | Assignment management (bulk assign, CSV import) | `DeviceManagementApps.ReadWrite.All`, `DeviceManagementConfiguration.ReadWrite.All` |
-| Group search | `Group.Read.All` |
-| Audit log | `DeviceManagementApps.Read.All` |
+| Group search                                    | `Group.Read.All`                                                                    |
+| Audit log                                       | `DeviceManagementApps.Read.All`                                                     |
 
 **Fix**: Click **Grant Permissions** on the Settings page for the missing tier. If the tier
 already shows as granted, the tenant-level admin consent may not have propagated yet, or a

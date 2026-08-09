@@ -87,7 +87,7 @@
 						{/each}
 					</div>
 					<div class="panel">
-						<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+						<div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
 							{#each Array(8) as _, i (i)}
 								<div class="space-y-1">
 									<Skeleton width="5rem" height="0.625rem" />

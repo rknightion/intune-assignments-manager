@@ -14,7 +14,7 @@
 
 <a
 	href="/remediations/{script.id}"
-	class="group border-border hover:bg-accent-subtle hover:border-l-accent flex items-center gap-4 border-b px-4 py-3 transition-all hover:border-l-2"
+	class="group border-border hover:bg-accent-subtle hover:border-l-accent border-l-2 border-l-transparent flex items-center gap-4 border-b px-4 py-3 transition-all"
 >
 	<!-- Icon -->
 	<div class="bg-accent-light flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">

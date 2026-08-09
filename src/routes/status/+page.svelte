@@ -140,7 +140,7 @@
 
 		{#if loading}
 			<!-- Skeleton stat cards -->
-			<div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			<div class="mb-8 grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-4">
 				{#each Array(4) as _, i (i)}
 					<div class="panel-raised flex items-center gap-4">
 						<Skeleton width="3rem" height="3rem" rounded="lg" />
@@ -174,7 +174,7 @@
 			{/each}
 		{:else if !error}
 			<!-- Summary stat cards -->
-			<div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			<div class="mb-8 grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-4">
 				<StatCard label="Total Apps" value={apps.length} icon={AppWindow} />
 				<StatCard label="Apps with Failures" value={failedApps.length} icon={AlertTriangle} />
 				<StatCard label="Total Profiles" value={profiles.length} icon={Settings} />

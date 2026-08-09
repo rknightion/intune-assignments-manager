@@ -25,7 +25,7 @@
 	<div class="animate-fade-in-up space-y-4 py-8">
 		<Skeleton width="40%" height="2rem" rounded="lg" />
 		<Skeleton width="60%" height="1rem" />
-		<div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+		<div class="mt-6 grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
 			<Skeleton height="5rem" rounded="lg" />
 			<Skeleton height="5rem" rounded="lg" />
 			<Skeleton height="5rem" rounded="lg" />

@@ -76,7 +76,7 @@
 			>
 				<Search size={14} />
 				<span class="hidden lg:inline">Search...</span>
-				<Kbd keys="\u2318K" />
+				<Kbd keys="⌘K" />
 			</button>
 		</div>
 	</div>

@@ -199,7 +199,7 @@
 					<div in:fly={{ y: 10, duration: 200, delay: Math.min(i * 30, 300) }}>
 						<a
 							href="/security/{policy.id}"
-							class="group border-border hover:bg-accent-subtle hover:border-l-accent flex items-center gap-4 border-b px-4 py-3 transition-all hover:border-l-2"
+							class="group border-border hover:bg-accent-subtle hover:border-l-accent border-l-2 border-l-transparent flex items-center gap-4 border-b px-4 py-3 transition-all"
 						>
 							<!-- Category icon -->
 							<div

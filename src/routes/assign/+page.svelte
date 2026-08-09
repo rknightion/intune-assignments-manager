@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { fly } from 'svelte/transition';
-	import { Upload } from 'lucide-svelte';
+	import { Upload, ArrowRight } from 'lucide-svelte';
 	import { page } from '$app/state';
 	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
@@ -551,8 +551,8 @@
 		{/key}
 
 		{#if currentStepIndex < 4}
-			<div class="flex items-center justify-between">
-				<Button variant="secondary" onclick={goBack} disabled={currentStepIndex === 0}>Back</Button>
+			<div class="border-border mt-6 flex items-center justify-between border-t pt-4">
+				<Button variant="ghost" onclick={goBack} disabled={currentStepIndex === 0}>Back</Button>
 
 				<div class="flex items-center gap-3">
 					{#if totalSelected > 0 && currentStepIndex === 0}
@@ -561,9 +561,10 @@
 						>
 					{/if}
 					<Button
-						variant={currentStepIndex === 3 ? 'primary' : 'primary'}
+						variant="primary"
 						onclick={goNext}
 						disabled={!canProceed}
+						iconRight={currentStepIndex === 3 ? undefined : ArrowRight}
 					>
 						{nextLabel}
 					</Button>

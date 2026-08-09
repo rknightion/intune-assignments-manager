@@ -41,7 +41,7 @@
 		<Icon size={22} class="text-accent" />
 	</div>
 	<div>
-		<p class="text-ink text-3xl font-semibold tabular-nums">{displayValue}</p>
-		<p class="text-ink-faint text-sm">{label}</p>
+		<p class="text-ink text-3xl leading-[1.1] font-semibold tabular-nums">{displayValue}</p>
+		<p class="text-ink-faint mt-1 text-sm">{label}</p>
 	</div>
 </div>

@@ -433,7 +433,7 @@
 						<div>
 							<h2 class="text-ink mb-2 text-lg font-semibold">Script Settings</h2>
 							<div class="panel">
-								<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+								<div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
 									<div>
 										<p class="text-muted text-xs font-medium uppercase">Run As Account</p>
 										<p class="text-ink mt-1 text-sm capitalize">{script.runAsAccount}</p>

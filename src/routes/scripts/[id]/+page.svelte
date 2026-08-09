@@ -444,7 +444,7 @@
 				{#if activeTab === 'script'}
 					<!-- Script metadata -->
 					<div class="panel mb-4">
-						<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+						<div class="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-4">
 							<div>
 								<p class="text-muted text-xs font-medium uppercase">File Name</p>
 								<p class="text-ink mt-1 text-sm font-medium">{script.fileName}</p>

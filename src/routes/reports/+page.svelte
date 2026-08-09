@@ -17,7 +17,7 @@
 				description="Generate and export reports for common Intune management tasks"
 			/>
 
-			<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			<div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
 				{#each REPORT_CONFIGS as config (config.type)}
 					<ReportCard {config} />
 				{/each}

@@ -132,13 +132,13 @@
 
 	<!-- Stat cards -->
 	{#if dashboardCache.loading && dashboardCache.appCount === null}
-		<div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+		<div class="mb-8 grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-4">
 			{#each Array(4) as _, i (i)}
 				<Skeleton height="5.5rem" rounded="lg" />
 			{/each}
 		</div>
 	{:else}
-		<div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+		<div class="mb-8 grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-4">
 			<StatCard label="Total Apps" value={dashboardCache.appCount ?? '---'} icon={AppWindow} />
 			<StatCard
 				label="Config Profiles"
@@ -169,7 +169,7 @@
 		<div class="grid gap-6 lg:grid-cols-3">
 			<!-- Recent Activity (2/3) -->
 			<div class="lg:col-span-2">
-				<h2 class="text-ink-faint mb-3 text-sm font-semibold tracking-wide uppercase">
+				<h2 class="text-ink-faint mb-3 text-xs font-semibold tracking-[0.05em] uppercase">
 					Recent Activity
 				</h2>
 				{#if dashboardCache.loading && dashboardCache.recentActivity.length === 0}
@@ -214,13 +214,17 @@
 
 			<!-- Quick Actions (1/3) -->
 			<div>
-				<h2 class="text-ink-faint mb-3 text-sm font-semibold tracking-wide uppercase">
+				<h2 class="text-ink-faint mb-3 text-xs font-semibold tracking-[0.05em] uppercase">
 					Quick Actions
 				</h2>
-				<div class="space-y-3">
-					<Button variant="primary" size="lg" icon={Layers} href="/assign">Bulk Assign</Button>
-					<Button variant="secondary" size="lg" icon={Download} href="/apps">Browse Apps</Button>
-					<Button variant="secondary" size="lg" icon={Upload} href="/profiles">
+				<div class="flex flex-col gap-3">
+					<Button variant="primary" size="lg" icon={Layers} href="/assign" fullWidth>
+						Bulk Assign
+					</Button>
+					<Button variant="secondary" size="lg" icon={Download} href="/apps" fullWidth>
+						Browse Apps
+					</Button>
+					<Button variant="secondary" size="lg" icon={Upload} href="/profiles" fullWidth>
 						Browse Profiles
 					</Button>
 				</div>

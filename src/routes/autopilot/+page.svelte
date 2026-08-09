@@ -256,7 +256,7 @@
 							)}
 							<a
 								href="/autopilot/devices/{device.id}"
-								class="group border-border hover:bg-accent-subtle hover:border-l-accent flex items-center gap-4 border-b px-4 py-3 transition-all hover:border-l-2 md:grid md:grid-cols-12 md:gap-2"
+								class="group border-border hover:bg-accent-subtle hover:border-l-accent border-l-2 border-l-transparent flex items-center gap-4 border-b px-4 py-3 transition-all md:grid md:grid-cols-12 md:gap-2"
 								in:fly={{ y: 10, duration: 200, delay: Math.min(i * 20, 300) }}
 							>
 								<!-- Mobile: icon + serial -->
@@ -380,7 +380,7 @@
 						{#each filteredProfiles as profile, i (profile.id)}
 							<a
 								href="/autopilot/profiles/{profile.id}"
-								class="group border-border hover:bg-accent-subtle hover:border-l-accent flex items-center gap-4 border-b px-4 py-3 transition-all hover:border-l-2"
+								class="group border-border hover:bg-accent-subtle hover:border-l-accent border-l-2 border-l-transparent flex items-center gap-4 border-b px-4 py-3 transition-all"
 								in:fly={{ y: 10, duration: 200, delay: Math.min(i * 30, 300) }}
 							>
 								<div

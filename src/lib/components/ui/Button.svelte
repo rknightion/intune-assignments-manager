@@ -10,8 +10,12 @@
 		loading?: boolean;
 		disabled?: boolean;
 		icon?: IconComponent;
+		/** Rendered after the label — e.g. arrow-right on a wizard's forward action. */
+		iconRight?: IconComponent;
 		href?: string;
 		type?: 'button' | 'submit' | 'reset';
+		/** Stretch to the container width — for stacked quick-action columns. */
+		fullWidth?: boolean;
 		onclick?: (e: MouseEvent) => void;
 		children: Snippet;
 	}
@@ -22,8 +26,10 @@
 		loading = false,
 		disabled = false,
 		icon: Icon,
+		iconRight: IconRight,
 		href,
 		type = 'button',
+		fullWidth = false,
 		onclick,
 		children
 	}: Props = $props();
@@ -48,7 +54,9 @@
 
 	const iconSizes: Record<string, number> = { sm: 14, md: 16, lg: 18 };
 
-	const classes = $derived(`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]}`);
+	const classes = $derived(
+		`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]}${fullWidth ? ' w-full' : ''}`
+	);
 </script>
 
 {#if href && !disabled}
@@ -59,6 +67,9 @@
 			<Icon size={iconSizes[size]} />
 		{/if}
 		{@render children()}
+		{#if IconRight && !loading}
+			<IconRight size={iconSizes[size]} />
+		{/if}
 	</a>
 {:else}
 	<button {type} {onclick} disabled={disabled || loading} class={classes}>
@@ -68,5 +79,8 @@
 			<Icon size={iconSizes[size]} />
 		{/if}
 		{@render children()}
+		{#if IconRight && !loading}
+			<IconRight size={iconSizes[size]} />
+		{/if}
 	</button>
 {/if}

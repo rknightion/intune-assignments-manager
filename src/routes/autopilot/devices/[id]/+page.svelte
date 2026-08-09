@@ -219,7 +219,7 @@
 				<!-- Device details -->
 				<div class="panel mb-6">
 					<h2 class="text-ink mb-4 text-lg font-semibold">Device Information</h2>
-					<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+					<div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
 						<div>
 							<p class="text-muted text-xs font-medium uppercase">Serial Number</p>
 							<p class="text-ink text-sm">{device.serialNumber}</p>

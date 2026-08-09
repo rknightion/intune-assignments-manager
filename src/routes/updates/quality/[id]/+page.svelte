@@ -305,7 +305,7 @@
 				{/if}
 
 				<!-- Settings summary -->
-				<div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				<div class="mt-4 grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
 					{#if profile.releaseDateDisplayName}
 						<div>
 							<p class="text-muted text-xs font-medium uppercase">Release Date</p>

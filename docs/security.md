@@ -41,12 +41,12 @@ credential -- there is nothing secret to leak from the app registration itself.
 
 The Tier 1 scopes requested at sign-in are a mix of read and **write** access:
 
-| Scope | Read/Write | What it grants |
-| --- | --- | --- |
-| `User.Read` | Read | Your own profile (name, email) |
-| `DeviceManagementApps.ReadWrite.All` | **Read + Write** | All Intune mobile apps and their assignments, tenant-wide |
+| Scope                                         | Read/Write       | What it grants                                                       |
+| --------------------------------------------- | ---------------- | -------------------------------------------------------------------- |
+| `User.Read`                                   | Read             | Your own profile (name, email)                                       |
+| `DeviceManagementApps.ReadWrite.All`          | **Read + Write** | All Intune mobile apps and their assignments, tenant-wide            |
 | `DeviceManagementConfiguration.ReadWrite.All` | **Read + Write** | All Intune configuration policies and their assignments, tenant-wide |
-| `Group.Read.All` | Read | Azure AD group names, used to resolve assignment targets |
+| `Group.Read.All`                              | Read             | Azure AD group names, used to resolve assignment targets             |
 
 Optional higher tiers add further scope -- see the full breakdown in
 [Permissions](permissions.md#permission-tiers). Tier 3
@@ -54,11 +54,11 @@ Optional higher tiers add further scope -- see the full breakdown in
 restart, retire); Tiers 2 and 4 are read-only.
 
 !!! danger "Blast radius of the write scopes"
-    `DeviceManagementApps.ReadWrite.All` and `DeviceManagementConfiguration.ReadWrite.All` are
-    **not scoped to specific apps or profiles** -- they grant write access to every app and
-    every configuration policy in the tenant. Any user who consents to these scopes, or any
-    session where a token for these scopes is compromised, can modify assignments tenant-wide,
-    not just the ones they intended to change.
+`DeviceManagementApps.ReadWrite.All` and `DeviceManagementConfiguration.ReadWrite.All` are
+**not scoped to specific apps or profiles** -- they grant write access to every app and
+every configuration policy in the tenant. Any user who consents to these scopes, or any
+session where a token for these scopes is compromised, can modify assignments tenant-wide,
+not just the ones they intended to change.
 
 The write path itself carries an additional risk that is architectural, not a permission
 issue: the Graph `assign` endpoint **replaces an item's entire assignment list** on every
@@ -84,10 +84,10 @@ principal that can act without a signed-in user:
   already would with the same delegated permissions.
 
 !!! tip "Evaluate with a dedicated account first"
-    Because the write scopes are tenant-wide, consider granting consent via a **dedicated
-    service/test account** or in a **test tenant** the first time you evaluate the app, rather
-    than an existing admin's daily-driver account -- see
-    [Permissions - Broad permissions](permissions.md#permission-tiers).
+Because the write scopes are tenant-wide, consider granting consent via a **dedicated
+service/test account** or in a **test tenant** the first time you evaluate the app, rather
+than an existing admin's daily-driver account -- see
+[Permissions - Broad permissions](permissions.md#permission-tiers).
 
 ## Where tokens live
 
@@ -96,11 +96,11 @@ Management](authentication.md#token-management)), which is what allows a session
 page refreshes and browser restarts. This has a direct consequence:
 
 !!! warning "Anyone with access to the browser session has your Intune access"
-    Because tokens live in `localStorage`, anyone with access to the browser profile --
-    another user of the same OS account, malicious code that achieves script execution on the
-    page, or a stolen device with the session unlocked -- can act with the same Graph
-    permissions you consented to, for as long as the tokens remain valid. Always sign out on
-    shared or public computers (see [Authentication - Sign-out](authentication.md#sign-out)).
+Because tokens live in `localStorage`, anyone with access to the browser profile --
+another user of the same OS account, malicious code that achieves script execution on the
+page, or a stolen device with the session unlocked -- can act with the same Graph
+permissions you consented to, for as long as the tokens remain valid. Always sign out on
+shared or public computers (see [Authentication - Sign-out](authentication.md#sign-out)).
 
 Signing out clears the MSAL token cache and the locally tracked granted-scopes state (stored
 under the `intune-granted-scopes` `localStorage` key -- see [Developer docs -

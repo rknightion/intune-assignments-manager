@@ -321,7 +321,7 @@
 					<!-- Profile settings -->
 					<div class="panel">
 						<h2 class="text-ink mb-4 text-lg font-semibold">Profile Configuration</h2>
-						<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+						<div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
 							<div>
 								<p class="text-muted text-xs font-medium uppercase">Device Name Template</p>
 								<p class="text-ink text-sm">
@@ -358,7 +358,7 @@
 					{#if profile.outOfBoxExperienceSettings}
 						<div class="panel mt-4">
 							<h2 class="text-ink mb-4 text-lg font-semibold">Out-of-Box Experience (OOBE)</h2>
-							<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+							<div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
 								<div>
 									<p class="text-muted text-xs font-medium uppercase">User Type</p>
 									<p class="text-ink text-sm capitalize">
