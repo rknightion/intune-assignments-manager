@@ -1,5 +1,5 @@
 ---
-title: Authentication
+title: Authentication Internals
 description: MSAL.js implementation details, login flow, token acquisition, incremental consent, and permission tiers.
 tags:
   - development
@@ -7,7 +7,7 @@ tags:
   - msal
 ---
 
-# Authentication
+# Authentication Internals
 
 Authentication is handled entirely client-side using Microsoft's MSAL.js library (`@azure/msal-browser`). The implementation lives in `src/lib/auth/` with reactive state managed by Svelte runes in `src/lib/stores/auth.svelte.ts`.
 

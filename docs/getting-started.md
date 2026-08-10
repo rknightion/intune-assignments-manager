@@ -19,7 +19,7 @@ Before you begin, ensure you have:
 - A **Microsoft 365 subscription** with **Microsoft Intune** licensed
 - An **Azure AD (Entra ID) tenant** where you can create app registrations
 - An account with permission to **create app registrations** in your tenant (or an admin who can do it for you)
-- For local development: **Node.js 18+** and **pnpm**
+- For local development: **Node.js 20+** and **pnpm**
 
 ## Azure App Registration
 
