@@ -151,7 +151,7 @@ Rules this project adds on top of the block above. They sit outside the tool-man
 - **Microsoft Graph endpoint findings (live-verified)** — which Intune endpoints actually respond. Read it before building on any endpoint; add to it rather than re-probing.
 - **Closed GitHub issues: pre-Backlog history index** — the pre-2026-08-14 history, whose full record is `archive/issues-dump.json`.
 
-**Never use `--notes` or `--plan` bare.** They *silently replace* the whole section, destroying another session's writes with no warning and exit 0. Use `--append-notes` and `--append-plan`. This is an open upstream bug, not a misunderstanding, and `.claude/hooks/backlog-guard.py` denies the bare forms rather than trusting anyone to remember.
+**Never use `--notes` or `--plan` bare.** They *silently replace* the whole section, destroying another session's writes with no warning and exit 0. Use `--append-notes` and `--append-plan`. This is an open upstream bug, not a misunderstanding, and a global `PreToolUse` hook in the agent config denies the bare forms rather than trusting anyone to remember.
 
 **Never hand-edit task, draft, doc, decision or milestone markdown.** Section boundaries are HTML-comment markers; break one and the section is *silently dropped* at exit 0 — still in the file, invisible to the CLI, until the next write destroys it for real. There is no repair command; `backlog doctor` only fixes duplicate task IDs. The guard hook denies these edits too. `backlog/config.yml` is the one exemption: list-valued keys cannot be set through `backlog config set`, so it is edited by hand.
 
