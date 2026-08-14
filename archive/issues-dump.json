@@ -1,0 +1,362 @@
+[
+  {
+    "assignees": [
+      {
+        "databaseId": 12484127,
+        "id": "MDQ6VXNlcjEyNDg0MTI3",
+        "login": "rknightion",
+        "name": "Rob K"
+      }
+    ],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "Follow-up to #93. That issue adopted the token layer; this one diffs the real Svelte screens against \\`ui_kits/intune-assignments/\\` in the design system project and closes the layout gaps.\n\nMethod: read each kit screen (\\`AppShell\\`, \\`DashboardScreen\\`, \\`AppsScreen\\`, \\`AssignWizardScreen\\`) and the component contracts it uses (\\`Button.d.ts\\`, \\`ListRow.jsx\\`, \\`StatCard.jsx\\`, \\`EmptyState.jsx\\`, \\`Panel.jsx\\`), and compare against the Svelte source the kit was recreated from.\n\n## Two real bugs the diff surfaced\n\n**1. The \u2318K trigger renders as literal `\u2318K`.** \\`TopBar.svelte:79\\` had \\`<Kbd keys=\"\u2318K\" />\\` \u2014 a JS-style escape inside an HTML attribute, which is not interpreted, so the button showed the eight characters `\u2318K`. (\\`ShortcutsDialog.svelte:21\\` uses the same sequence but inside a JS string literal, where it *is* interpreted \u2014 so that one was always correct, which is likely why this went unnoticed.) The design system names the `\u2318K` glyph in the search trigger explicitly.\n\n**2. Every list row jogs 2px right on hover.** Ten row components used \\`hover:border-l-2\\` with no border at rest, so the 2px accent left edge is *added* on hover rather than revealed \u2014 the entire row's content shifts. The kit's \\`ListRow\\` reserves it: \\`borderLeft: '2px solid transparent'\\` at rest, accent on hover. Affected: \\`AppRow\\`, \\`ProfileRow\\`, \\`DeviceRow\\`, \\`CompliancePolicyRow\\`, \\`ScriptRow\\`, \\`RemediationRow\\`, and inline rows in \\`security\\`, \\`updates\\`, \\`autopilot\\` (\u00d72).\n\n## Layout gaps closed\n\n- **Fixed-count card grids \u2192 \\`auto-fit\\`.** The system makes this a hard rule: grids must be \\`repeat(auto-fit, minmax(...))\\`, never \\`repeat(N, 1fr)\\`. 14 tile grids used \\`sm:grid-cols-2 lg:grid-cols-{3,4}\\`, which keys off the *viewport* \u2014 but the content column is capped at 72rem beside a 240px rail, so viewport \u2260 container. Converted to \\`minmax(190px,1fr)\\` for stat tiles and \\`minmax(240px,1fr)\\` for card grids.\n- **Wizard nav had no separator.** The kit's footer is `border-top` + 24px above + 16px below. \\`assign/+page.svelte\\` had the Back/Continue row butted straight against the step content.\n- **Back button is `ghost`, not `secondary`**, per the kit and \\`Button.d.ts\\` (\"ghost for toolbar actions\").\n- **Continue carries \\`arrow-right\\`** via a new \\`iconRight\\` prop.\n- **Quick Actions buttons are full-width** \u2014 the kit passes \\`fullWidth\\`; locally they were intrinsic-width in a 1/3 column.\n- **Section eyebrows** were 14px/0.025em; \\`--type-eyebrow\\` is 12px semibold and the kit sets 0.05em tracking.\n- **StatCard** value/label gap 0 \u2192 4px, and value line-height pinned to 1.1 per the kit.\n\n## Button gains two props from the system's contract\n\n\\`fullWidth\\` and \\`iconRight\\` both exist in \\`components/core/Button.d.ts\\` and were missing locally. Both are now used.\n\n## Deliberately NOT changed\n\n- **\\`grid-cols-12\\` layouts stay.** Those are table header/row definitions driven by \\`col-span-*\\`; auto-fit is wrong for them.\n- **\\`sm:grid-cols-3\\` metadata triples stay.** They sit inside panels at a known width and carry no col-spans; converting them is churn without a payoff.\n- **Dashboard stays 2/3 + 1/3**, not the kit's equal columns. The kit simplifies; the real split suits the content and the fixed count is breakpoint-gated so it cannot overflow.\n- **Responsive gutters stay** (\\`px-4 sm:px-6 lg:px-8\\`) rather than the kit's flat 24px.\n- **StatCard trend/trendLabel not added** \u2014 an unused feature, not a layout gap.\n- \\`PageHeader\\`, \\`Tabs\\`, \\`EmptyState\\` and \\`Badge\\` were checked and already match the system exactly.\n\n## Acceptance\n\n- [ ] \u2318K renders as the glyph\n- [ ] No row shifts horizontally on hover\n- [ ] No \\`sm:grid-cols-2 lg:grid-cols-N\\` card grids remain\n- [ ] Wizard footer has the separator rule, ghost Back, arrow on Continue\n- [ ] \\`Button\\` supports \\`fullWidth\\` and \\`iconRight\\`\n- [ ] \\`pnpm build\\` and \\`pnpm exec eslint\\` clean on the changed set",
+    "closedAt": "2026-08-09T19:44:43Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Done in `398fcf2`, pushed to `main`. 28 files, +83/-64.\n\nAll acceptance items met. `pnpm build` clean, `pnpm exec eslint` clean on the changed set (no new findings \u2014 the repo's pre-existing lint debt is untouched). Verified in the browser at `localhost:5199`: `kbd` now reads `\u2318K`, and the stat grid computes to `260px 260px 260px 260px 0px` \u2014 four stretched tracks plus one collapsed empty track, which is auto-fit behaving correctly.\n\nWorth recording for whoever next syncs against the kit: **the kit is a recreation, so not every difference is a gap.** Three of its simplifications would have been regressions if applied \u2014 equal dashboard columns instead of 2/3+1/3, flat 24px gutters instead of responsive ones, and no trend affordance on StatCard. The rule that held up was to change things where the kit encodes a *system rule* (the auto-fit grid rule, the reserved hover edge, the eyebrow type role, the `Button` props contract) and leave things where the kit is merely less detailed than the real product.",
+        "createdAt": "2026-08-09T19:44:55Z",
+        "id": "IC_kwDORU57W88AAAABN_EaEQ",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/intune-assignments-manager/issues/94#issuecomment-5233515025",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-09T19:44:28Z",
+    "labels": [],
+    "milestone": null,
+    "number": 94,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "Close layout gaps against the design system's intune-assignments UI kit",
+    "updatedAt": "2026-08-09T19:44:56Z",
+    "url": "https://github.com/rknightion/intune-assignments-manager/issues/94"
+  },
+  {
+    "assignees": [
+      {
+        "databaseId": 12484127,
+        "id": "MDQ6VXNlcjEyNDg0MTI3",
+        "login": "rknightion",
+        "name": "Rob K"
+      }
+    ],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "## What\n\nPull the token layer from the \\`m7kni Design System\\` Claude Design project (\\`<claude-design-project-id>\\`) and apply it to this app.\n\nThat system was reverse-engineered *from* this repo's \\`src/app.css\\`, then unified with paperless-ngx-dedupe and tightened. So adoption is a token-layer swap, not a rewrite \u2014 every component here already reads tokens, so nothing hard-codes a colour and no component markup needs to change.\n\n## Divergences to close\n\n| Token | Before (this repo) | After (design system) | Why |\n|---|---|---|---|\n| \\`--color-accent\\` | blue \\`oklch(0.55 0.18 250)\\` | Jade \\`oklch(0.49 0.13 165)\\` (\\`#00764d\\`) | one brand accent across all m7kni products |\n| \\`--color-canvas\\` / \\`-deep\\` / \\`--color-border\\` / \\`--color-soft\\` | cool, hue 260/265 | warm paper, hue 85 | cool ink on warm paper; keeps density from reading clinical |\n| \\`--color-success\\` | \\`0.55 0.15 155\\` | \\`0.49 0.15 155\\` | **AA fix** \u2014 foregrounds must clear 4.5:1 on *their own tint*, not on white |\n| \\`--color-warn\\` | \\`0.7 0.15 85\\` | \\`0.52 0.15 85\\` | same AA fix; this one was well below AA |\n| \\`--color-ember\\` | \\`0.55 0.2 25\\` | \\`0.52 0.2 25\\` | same AA fix |\n| \\`--color-sidebar-active\\` | blue-tinted | jade-tinted \\`0.36 0.06 165\\` | follows the accent |\n| \\`--color-sidebar-top\\` | absent (hard-coded inline) | token | sidebar carries a 180\u00b0 gradient |\n| \\`--color-accent-product\\` + \\`-light\\` | absent | violet \\`0.53 0.16 300\\` | shared \"this is a specific project\" colour, so eleven repos don't become eleven hues |\n| \\`--color-chart-1..6\\` | absent | 6-series ramp | series 1 is violet so a single-series chart never reads as a primary action |\n| \\`--shadow-panel\\` | absent (panels used \\`--shadow-sm\\`) | \\`0 1px 2px /4%\\` + \\`0 2px 8px /3%\\` | the card shadow the system specifies |\n| \\`--panel-padding\\` / \\`--panel-inset-padding\\` | 1.5rem / 1rem | 1.75rem / 1.25rem | system spacing |\n\nDark mode re-points every one of these, same names.\n\n## Out of scope\n\nNo component markup changes. \\`Badge\\` was checked against the system's \"state is a tinted pill, the accent is a solid fill or a link\" rule and already complies \u2014 it has no solid variant. The sidebar already identifies the product with a Lucide \\`layers\\` glyph in an accent tile beside the name, which is what the system specifies.\n\n## Acceptance\n\n- [ ] \\`src/app.css\\` \\`@theme\\` block carries the design system's colour, chart, shadow and panel-spacing tokens\n- [ ] \\`.dark\\` block re-points the same names to the system's dark values\n- [ ] \\`panel\\` / \\`panel-raised\\` / \\`panel-inset\\` utilities use \\`--panel-padding\\`, \\`--panel-inset-padding\\` and \\`--shadow-panel\\`\n- [ ] No hard-coded colour remains in \\`src/\\` (the inline \\`oklch()\\` sidebar gradient in \\`+layout.svelte\\` becomes \\`var(--color-sidebar-top)\\`)\n- [ ] \\`pnpm build\\` passes\n- [ ] Both schemes verified in a browser",
+    "closedAt": "2026-08-09T19:32:29Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Done in `549a1ec`, pushed to `main`.\n\nAll acceptance items met. `pnpm build` passes clean. Verified both schemes at `localhost:5199`: light renders warm off-white canvas + white cards + jade accent tiles and active nav; dark renders the lifted surface ramp with the brightened jade. No console output in either.\n\nOne thing worth recording: `rg` over `src/` turned up **zero** hex colours and zero Tailwind palette classes (`blue-600` etc.) \u2014 the only hard-coded colour in the whole app was the inline `oklch(0.22 0.03 260)` sidebar gradient, which is now `var(--color-sidebar-top)`. That is why this was a token-layer-only change and why a future accent change costs one file.",
+        "createdAt": "2026-08-09T19:32:39Z",
+        "id": "IC_kwDORU57W88AAAABN_BZUw",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/intune-assignments-manager/issues/93#issuecomment-5233465683",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-09T19:32:15Z",
+    "labels": [],
+    "milestone": null,
+    "number": 93,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "Adopt the m7kni design system token layer",
+    "updatedAt": "2026-08-09T19:32:39Z",
+    "url": "https://github.com/rknightion/intune-assignments-manager/issues/93"
+  },
+  {
+    "assignees": [
+      {
+        "databaseId": 12484127,
+        "id": "MDQ6VXNlcjEyNDg0MTI3",
+        "login": "rknightion",
+        "name": "Rob K"
+      }
+    ],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "Follow-up to the org move. The core repository configuration now matches the 2otel repos (`opnsense2otel`, `tailscale2otel`, `graph2otel`); two cosmetic gaps remain.\n\n## Already mirrored\n\n| Setting | Value |\n|---|---|\n| `allow_auto_merge` | true |\n| `allow_squash_merge` / `merge_commit` / `rebase_merge` | all true |\n| `squash_merge_commit_title` / `_message` | `COMMIT_OR_PR_TITLE` / `COMMIT_MESSAGES` |\n| `delete_branch_on_merge` | true |\n| `allow_update_branch` | false |\n| `has_issues` / `has_projects` / `has_wiki` | true / true / false |\n| `secret_scanning` | **enabled** (was disabled) |\n| `secret_scanning_push_protection` | **enabled** (was disabled) |\n| `dependabot_security_updates` | disabled, matching the fleet - Renovate owns updates |\n| `homepage` | https://m7kni.io/intune-assignments-manager/ |\n| branch ruleset `main` | `deletion`, `non_fast_forward`, `pull_request` (0 approvals), required `ci-success`; admin bypass |\n| `.github/CODEOWNERS` | `* @rknightion` |\n| `.github/PULL_REQUEST_TEMPLATE.md` | adapted from graph2otel |\n\nThe ruleset needed CI to exist first - this repo had no `pull_request` CI at all, so requiring `ci-success` would have deadlocked every Renovate PR. `.github/workflows/ci.yml` was added for that, and `renovate.json`'s `platformAutomerge:false` override dropped now that native auto-merge has a real check to gate on.\n\n## Remaining\n\n- [ ] **Issue templates.** graph2otel has `.github/ISSUE_TEMPLATE/{bug_report.yml,feature_request.yml,config.yml}`; this repo has none. They are product-specific, so they want adapting rather than copying - a bug report here should ask for tenant-free reproduction details, the Graph endpoint involved, and browser console output, given the app is entirely client-side.\n- [ ] **Labels.** graph2otel has 44, this repo has 18. Worth syncing the shared taxonomy so the fleet's saved queries work uniformly.\n\nNeither blocks anything. Filed so the drift is recorded rather than forgotten.",
+    "closedAt": "2026-08-09T19:25:45Z",
+    "comments": [],
+    "createdAt": "2026-08-08T19:36:52Z",
+    "labels": [],
+    "milestone": null,
+    "number": 87,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "Mirror remaining 2otel repo config: issue templates and label set",
+    "updatedAt": "2026-08-09T19:25:45Z",
+    "url": "https://github.com/rknightion/intune-assignments-manager/issues/87"
+  },
+  {
+    "assignees": [
+      {
+        "databaseId": 12484127,
+        "id": "MDQ6VXNlcjEyNDg0MTI3",
+        "login": "rknightion",
+        "name": "Rob K"
+      }
+    ],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "Found while verifying #84. **Pre-existing and unrelated to that work** - reproduced identically on a pristine tree with the changes stashed.\n\nThe repo resolves `typescript@7.0.2` (from `\"typescript\": \"^7.0.0\"`), and neither of the two quality-gate tools supports it yet.\n\n`pnpm lint`:\n```\nError: typescript-eslint does not support TS 7.0.\n```\nTracking upstream: typescript-eslint/typescript-eslint#10940.\n\n`pnpm check`:\n```\nError: TypeScript 7 support currently requires both TypeScript 7 and TypeScript 6\ninstalled in your project, and requires using the --tsgo or --tsgo-experimental-api flag.\n```\nsvelte-check's own suggested fix is the side-by-side install:\n```\nnpm install --save-dev typescript@~6 @typescript/native@npm:typescript@7\n```\n\n`pnpm build` still passes, because Vite/esbuild strip types without checking them. So the build being green currently proves nothing about type correctness - the repo has had no working type-check or lint since the TS 7 bump.\n\nThis matters more now the repo is public: CLAUDE.md names `pnpm build` + `pnpm lint` as the definition of done, and two thirds of that gate silently does not run.\n\n## Options\n\n1. **Pin back to `typescript@~6`.** Simplest, restores both tools immediately, costs the TS 7 performance win.\n2. **Side-by-side install** per svelte-check's message, plus `--tsgo` on the check script. Keeps TS 7 but typescript-eslint still will not run, so lint stays broken.\n3. **Wait for typescript-eslint** TS >=7.1 support and pin to TS 6 in the meantime.\n\nOption 1 looks right until #10940 lands - it is one line and un-breaks everything.\n\n### Acceptance criteria\n\n- [ ] Decision made on which option to take\n- [ ] `pnpm check` runs and reports real results\n- [ ] `pnpm lint` runs and reports real results\n- [ ] Any errors the restored gate surfaces are triaged (MEMORY notes ~31 pre-existing ESLint errors from before the break)\n- [ ] A Renovate rule or comment records why the TypeScript major is constrained, so the next bump does not silently re-break it",
+    "closedAt": "2026-08-08T19:37:23Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Resolved the tooling half in db835fd. **Option 1 was the only real option** - I checked the registry, and `typescript-eslint@8.66.0`, `svelte-check@4.7.5` and `eslint@10.8.1` are *already the latest published versions*. There was nothing to upgrade to. TypeScript was the only lever, so it is pinned back to `^6.0.3` (6.0.3 is a real stable release) with a Renovate `allowedVersions: <7.0.0` constraint and the reasoning inline, so a future major cannot silently re-break both gates.\n\nAlso excluded `site/` and vendored `docs/javascripts/` from ESLint - with `site/` now untracked-but-on-disk, flat config does not read .gitignore, so ESLint was linting minified zensical bundles. That alone accounted for 699 of an apparent 795 errors.\n\n## What the restored gate actually found\n\nAll pre-existing, none touched in that commit.\n\n`pnpm check` - **6 errors**, all in `src/routes/reports/[type]/+page.svelte` and all one root cause: report row interfaces (`AppDeploymentReportItem`, `FailedDeploymentItem`, `UnassignedItem`, `StaleDevice`, `AssignmentCoverageItem`) are passed where `Record<string, unknown>[]` is expected, but have no index signature.\n\n`pnpm lint` - **86 errors**:\n\n| count | rule |\n|---|---|\n| 66 | `@typescript-eslint/no-unused-vars` |\n| 14 | `svelte/require-each-key` |\n| 5 | `@typescript-eslint/no-explicit-any` |\n| 1 | `@typescript-eslint/no-unused-expressions` |\n\nNote the earlier \"31 pre-existing errors\" figure was from before the TS 7 break and is superseded.\n\n**The 14 `svelte/require-each-key` are the ones that matter.** Unkeyed and duplicate-keyed `{#each}` blocks are the exact failure mode that has already broken reactivity in this codebase - a duplicate key thrown in a child component takes out the whole parent update cycle, which presents as tabs that switch indicator but not content. CLAUDE.md already mandates unique keys. These 14 are latent instances of a bug class that has bitten before, and they should be fixed before the other 72.\n\n### Remaining acceptance criteria\n\n- [x] Decision made on which option to take\n- [x] `pnpm check` runs and reports real results\n- [x] `pnpm lint` runs and reports real results\n- [x] Renovate rule records why the TypeScript major is constrained\n- [ ] Triage the 14 `svelte/require-each-key` errors (priority - real bug class)\n- [ ] Triage the 6 svelte-check type errors\n- [ ] Triage the remaining 72 lint errors\n\nSplitting the triage out into its own issue makes sense if it is not being done immediately.",
+        "createdAt": "2026-08-08T18:57:52Z",
+        "id": "IC_kwDORU57W88AAAABN5cpzw",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/intune-assignments-manager/issues/86#issuecomment-5227620815",
+        "viewerDidAuthor": true
+      },
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "All triage done. **Gate is now at zero on all three: eslint 0, svelte-check 0 errors / 0 warnings, vite build clean.**\n\nCommits: d502e28 (fixes), ed9fa00 (Prettier, split out to keep the fix diff reviewable), 06b3acf (CI), plus the pnpm supply-chain work.\n\n## How each class was resolved\n\n**66 `no-unused-vars`** - every one was the `_` throwaway in `{#each items as _, i}`. Fixed once in `eslint.config.js` with `varsIgnorePattern: '^_'` rather than 66 edits, since `_` is already the deliberate convention in this codebase.\n\n**14 `svelte/require-each-key`** - all `{#each Array(N) as _}` skeleton placeholders, now keyed by index. **Correcting my earlier comment on this issue:** I called these latent instances of the duplicate-key reactivity bug. That was wrong. That bug came from Graph API data returning repeated ids (`deviceCompliancePolicyStates`); these loops are fixed-length and content-free and could never collide. Lint hygiene, not a defect.\n\n**5 `no-explicit-any`** - all `icon: any` props holding lucide components. Added `IconComponent` in `src/lib/types/ui.ts`. It is deliberately the **legacy** `ComponentType<SvelteComponent<IconProps>>`, not Svelte 5's `Component<IconProps>`: lucide-svelte 1.0.1 still declares `svelte ^4.2.19` as its peer and ships `SvelteComponentTyped` subclasses. Typing it the modern way type-checks at the definition and then fails at every call site - it took svelte-check from 6 errors to 102 before I corrected it.\n\n**1 `no-unused-expressions`** - the bare `page.params.id` inside a `$effect` is the deliberate tracked-dependency read that the `untrack()` pattern depends on. Now `void page.params.id` with a comment, not deleted.\n\n**6 svelte-check** - report row shapes were `interface`s being assigned to ReportTable's `Record<string, unknown>[]` prop. TypeScript refuses that for interfaces, which stay open to declaration merging so it cannot infer the implicit index signature; `type` aliases are accepted. Converted, with the reason recorded in `src/lib/types/reports.ts` so they do not get changed back.\n\nAlso: 699 of the apparent 795 errors were ESLint linting minified zensical bundles in `site/`, because that directory is untracked-but-on-disk and flat config does not read `.gitignore`. `site/` and vendored `docs/javascripts/` are now in the ignores.\n\n## Acceptance criteria\n\n- [x] Decision made on which option to take\n- [x] `pnpm check` runs and reports real results\n- [x] `pnpm lint` runs and reports real results\n- [x] Renovate rule records why the TypeScript major is constrained\n- [x] Triage the 14 `svelte/require-each-key` errors\n- [x] Triage the 6 svelte-check type errors\n- [x] Triage the remaining 72 lint errors\n\nCI (#87 context) now enforces all three on every PR, so this cannot silently regress again.",
+        "createdAt": "2026-08-08T19:37:22Z",
+        "id": "IC_kwDORU57W88AAAABN5l_wA",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/intune-assignments-manager/issues/86#issuecomment-5227773888",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-08T18:40:43Z",
+    "labels": [],
+    "milestone": null,
+    "number": 86,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "pnpm check and pnpm lint are both broken by TypeScript 7.0.2",
+    "updatedAt": "2026-08-08T19:37:23Z",
+    "url": "https://github.com/rknightion/intune-assignments-manager/issues/86"
+  },
+  {
+    "assignees": [
+      {
+        "databaseId": 12484127,
+        "id": "MDQ6VXNlcjEyNDg0MTI3",
+        "login": "rknightion",
+        "name": "Rob K"
+      }
+    ],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "Follow-up to #84.\n\n`.github/workflows/trigger-docs-sync.yml` mints its GitHub App installation token from the OpenBao broker on <broker-host> using a **Tailscale federated identity pinned to m7kni org id `278668071`**. The repo has now moved to `rknightion`, so its GitHub OIDC token carries `rknightion` claims and that identity will refuse to exchange them. Docs sync from this repo will fail on the next push touching `docs/**` or `zensical.toml`.\n\nThe OpenBao **permission set** does not need to change - `docs-sync` is shared by every consumer because they all dispatch at the same hub (`rknightion/m7kni-net-site`), so the App installation boundary is not crossed. What needs repointing is the Tailscale WIF identity and/or the bound subject on JWT role `docs-sync-intune-assignments-manager`.\n\nThis is <broker-host>-side infrastructure work, not a code change in this repo. Runbook: `~/repos/chat-personal/<broker-host>/openbao/runbooks/CI-SECRETS.md`.\n\n### Acceptance criteria\n\n- [ ] JWT role `docs-sync-intune-assignments-manager` bound subject updated to the `rknightion` repo\n- [ ] Tailscale federated identity for this repo repointed off m7kni org id 278668071\n- [ ] `TS_WIF_CLIENT_ID` / `TS_WIF_AUDIENCE` repo secrets confirmed still correct after transfer\n- [ ] `gh workflow run trigger-docs-sync.yml` succeeds end to end and the hub rebuilds\n\n### Note\n\nThe m7kni-specific rationale comment was already removed from the workflow in d74688d, so the workflow file itself needs no further edit - only the identity behind it.",
+    "closedAt": "2026-08-09T19:25:29Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Half done. The OpenBao side is fixed and verified; the Tailscale side needs you in the admin console.\n\n## Done: OpenBao JWT role repointed\n\nThe role bound the old owner exactly as suspected:\n\n```\nbound_claims: {ref: refs/heads/main, repository_id: 1162771291,\n               repository_owner_id: 278668071, runner_environment: github-hosted}\n```\n\n`repository_owner_id` is now `12484127` (rknightion). Everything else is unchanged and re-read back to confirm - `repository_id` `1162771291` is untouched, because a GitHub transfer keeps the repo id. `token_policies: [gha-docs-sync]`, ttl 300, num_uses 3, all preserved.\n\nThe `docs-sync` permission set needed no change, as expected: it is scoped to the hub repo `rknightion/m7kni-net-site`, which never moved, so the App installation boundary was never crossed.\n\n## Not done: the Tailscale trust credential still rejects\n\nRe-ran the workflow (run 31274465946). It now fails *earlier* than OpenBao, at joining the tailnet:\n\n```\nfailed to exchange JWT for access token: token exchange failed with status 403:\n{\"message\":\"Unauthorized. Visit https://login.tailscale.com/admin/settings/trust-credentials/view/*** for details\"}\n```\n\nThe job's OIDC token now carries `rknightion` claims, and the trust credential behind this repo's `TS_WIF_CLIENT_ID` is still bound to m7kni, so it refuses the exchange. There is no Tailscale API credential in OpenBao (`secret/` holds only `m7kni/renovate-config` and four `brewmdm/` paths), so this cannot be done from here.\n\n### Recommended fix: repoint, do not edit\n\n**This repo was the m7kni trust credential's only consumer.** The only other live m7kni repo using broker-token is `m7kni/rkps-awsinfra`, and it runs `join-tailnet: \"false\"` on the permanent-tailnet `runners` host, so it never performs a WIF exchange at all. `m7kni/renovate-config` is not a broker consumer.\n\nSo rather than rebinding the m7kni credential to rknightion - which would leave two rknightion-bound credentials - point this repo at the shared rknightion one that `tailscale2otel`, `graph2otel` and the rest already use. Their `TS_WIF_CLIENT_ID`/`TS_WIF_AUDIENCE` were all set within ~11 seconds of each other, so it is one shared value, not per-repo.\n\n- [ ] Read the shared rknightion trust credential's client id + audience from the Tailscale admin console\n- [ ] `gh secret set TS_WIF_CLIENT_ID --repo rknightion/intune-assignments-manager`\n- [ ] `gh secret set TS_WIF_AUDIENCE --repo rknightion/intune-assignments-manager`\n- [ ] Delete the now-orphaned m7kni trust credential\n- [ ] `gh workflow run trigger-docs-sync.yml` and confirm it reaches the dispatch step\n\nPer CI-SECRETS.md these two are *identifiers, not credentials* - worthless without a GitHub-signed OIDC token that matches - so pasting the client id here is low-risk if you would rather I set them.\n\n### Note\n\nThe workflow file itself needs no further change; the m7kni rationale comment came out in d74688d.",
+        "createdAt": "2026-08-08T19:35:39Z",
+        "id": "IC_kwDORU57W88AAAABN5ll3A",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/intune-assignments-manager/issues/85#issuecomment-5227767260",
+        "viewerDidAuthor": true
+      },
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "CI context now settled, which sharpens the test for the remaining Tailscale work: `.github/workflows/ci.yml` is green on main and `ci-success` is a satisfied required check, so once the trust credential is repointed, `gh workflow run trigger-docs-sync.yml` is a clean end-to-end verification with nothing else in the way.",
+        "createdAt": "2026-08-08T20:23:19Z",
+        "id": "IC_kwDORU57W88AAAABN5xjAw",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/intune-assignments-manager/issues/85#issuecomment-5227963139",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-08T18:40:27Z",
+    "labels": [],
+    "milestone": null,
+    "number": 85,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "docs-sync will fail after the org transfer: Tailscale WIF identity still pinned to m7kni",
+    "updatedAt": "2026-08-09T19:25:29Z",
+    "url": "https://github.com/rknightion/intune-assignments-manager/issues/85"
+  },
+  {
+    "assignees": [
+      {
+        "databaseId": 12484127,
+        "id": "MDQ6VXNlcjEyNDg0MTI3",
+        "login": "rknightion",
+        "name": "Rob K"
+      }
+    ],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "Move the repo from the `m7kni` org to `rknightion`, update every reference that\nthe move invalidates, and prepare it for an AGPLv3 open-source release.\n\n## Why\n\nThe repo lived at `rknightion/intune-assignments-manager` before (GitHub still\nserves a redirect from that path to `m7kni/`), and it belongs back there with\nthe rest of the OSS repos. It is also about to be relicensed AGPLv3, so it needs\na licence, and it needed a pre-publication audit for leaked credentials or\npersonal/infrastructure detail.\n\n## Audit result (done before any changes)\n\nWorking tree and all 122 commits were scanned. **Clean.**\n\n- **Secrets/credentials:** no tokens, API keys, private keys, JWTs, AWS/Slack/\n  GitHub token patterns, or secret-shaped assignments. Only `.env.example` has\n  ever existed matching credential-ish filenames, and it holds a placeholder.\n- **PII:** no email addresses anywhere. Git authors are all `noreply` addresses.\n  The only GUIDs in the tree are `00000000-0000-0000-0000-00000000000N`\n  placeholders in `docs/csv.md`.\n- **Home-lab / infrastructure:** two mild disclosures, both in\n  `.github/workflows/trigger-docs-sync.yml` - a comment describing the OpenBao\n  broker reached over a Tailscale federated identity, and the m7kni org id\n  `278668071`. Neither is a credential and the org id is public metadata, but\n  the comment advertises the broker's existence. It has to be rewritten for the\n  transfer regardless, so it gets trimmed at the same time.\n- No hardcoded internal hostnames, RFC1918 addresses, `.ts.net` names, or\n  references to <broker-host> / Forgejo / <internal-git-domain>.\n\n## Scope\n\n`m7kni.io` is **not** being changed. It is the shared docs hub for every repo\n(the hub repo is `rknightion/m7kni-net-site`), so the GitHub org move does not\nimply a domain move. Only `github.com/m7kni/...` org references change.\n\n### Acceptance criteria\n\n- [ ] `site/` (committed zensical build output, 26 generated HTML files) removed\n      from git and gitignored. The hub only consumes `docs/**` and\n      `zensical.toml`, so it is dead weight carrying 208 stale org refs.\n- [ ] `zensical.toml` org refs updated (`repo_name`, `repo_url`, `repository`,\n      footer `link`).\n- [ ] `docs/development/setup.md` and `docs/getting-started.md` clone URLs point\n      at `rknightion/` instead of the `your-org/` placeholder.\n- [ ] `.github/workflows/trigger-docs-sync.yml` comment rewritten - the\n      m7kni-org rationale is obsolete after the transfer.\n- [ ] `LICENSE` added with the full AGPL-3.0 text.\n- [ ] `package.json` carries `\"license\": \"AGPL-3.0-only\"`.\n- [ ] `SPDX-License-Identifier: AGPL-3.0-only` header on all 157 source files in\n      `src/` (88 `.svelte`, 69 `.ts`).\n- [ ] README gains a licence section.\n- [ ] Repo transferred to `rknightion` and the local git remote updated.\n- [ ] `pnpm build`, `pnpm check` and `pnpm lint` pass.\n\n## Follow-up NOT covered here (infrastructure, <broker-host>-side)\n\nThe docs-sync job mints its token with a Tailscale federated identity **pinned\nto m7kni org id 278668071**, with OpenBao JWT role\n`docs-sync-intune-assignments-manager`. After the transfer the repo's OIDC\nclaims say `rknightion`, so that identity will refuse the token and docs-sync\nwill start failing. The Tailscale WIF identity and/or the OpenBao JWT role bound\nsubject must be repointed at `rknightion`. See\n`~/repos/chat-personal/<broker-host>/openbao/runbooks/CI-SECRETS.md`.\n",
+    "closedAt": "2026-08-08T18:39:35Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Done in d74688d. Repo transferred to `rknightion` via `POST /repos/{owner}/{repo}/transfer` - completed immediately with no acceptance prompt, and GitHub now reports `license: AGPL-3.0` on the repo. Local remote repointed.\n\nTwo things left open, neither in this issue's scope:\n\n1. **docs-sync will now fail** until the <broker-host>-side identity is repointed - the workflow's Tailscale federated identity is pinned to m7kni org id 278668071 and this repo's OIDC claims now say `rknightion`. Tracked in #85.\n2. **`pnpm check` and `pnpm lint` are both broken** by the TypeScript 7.0.2 resolution, independently of this work (verified identical on a pristine tree). Tracked in #86.",
+        "createdAt": "2026-08-08T18:40:14Z",
+        "id": "IC_kwDORU57W88AAAABN5YhSQ",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/intune-assignments-manager/issues/84#issuecomment-5227553097",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-08-08T18:35:36Z",
+    "labels": [],
+    "milestone": null,
+    "number": 84,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "Move repo from m7kni org to rknightion, and prepare for AGPLv3 OSS release",
+    "updatedAt": "2026-08-08T18:40:14Z",
+    "url": "https://github.com/rknightion/intune-assignments-manager/issues/84"
+  },
+  {
+    "assignees": [
+      {
+        "databaseId": 12484127,
+        "id": "MDQ6VXNlcjEyNDg0MTI3",
+        "login": "rknightion",
+        "name": "Rob K"
+      }
+    ],
+    "author": {
+      "id": "MDQ6VXNlcjEyNDg0MTI3",
+      "is_bot": false,
+      "login": "rknightion",
+      "name": "Rob K"
+    },
+    "body": "Part of the fleet-wide docs effort tracked in **rknightion/m7kni-net-site#28** (Phase 2). This repo's doc site is served under the m7kni.io hub at `/intune-assignments-manager/`, so its own Zensical build + theme overrides determine what search engines and LLMs see for these pages.\n\nTwo things are bundled here because they touch the same files:\n\n1. **Redesign & rebrand alignment** \u2014 adopt the new m7kni.io brand and colour scheme (light-first, the shared wordmark / palette / type tokens) so the whole fleet reads as one product family. **Tune it for documentation, not marketing:** unlike the vibrant hub *landing* page, these are end-user **product documentation** sites \u2014 prioritise a clean, professional, highly readable, documentation-friendly presentation (sensible density, strong nav/TOC/search, scannable reference content) while staying on-brand in palette, type, and logo. Brand-consistent, docs-first. The exact spec follows from the hub redesign \u2014 treat the visual details as **pending finalization in rknightion/m7kni-net-site#28** and don't front-run them.\n2. **SEO / LLM discoverability** \u2014 the metadata improvements below, fully specified now and able to proceed independently of the visual spec.\n\n## Why (SEO/LLM part)\n\nLike the hub, this site's `docs/overrides/main.html` is an empty passthrough, so OpenGraph/Twitter/JSON-LD/robots meta are either absent or (if copied from the hub) injected client-side and invisible to non-JS crawlers and LLMs (GPTBot, ClaudeBot, PerplexityBot, CCBot, social unfurlers). Render them server-side.\n\n## Tasks\n\n- [ ] **Redesign & rebrand alignment** \u2014 apply the finalized hub brand/scheme in a professional, documentation-friendly way (spec via rknightion/m7kni-net-site#28). Brand-consistent palette/type/logo; docs-first layout, density, and navigation.\n- [ ] **Server-render head tags** \u2014 `main.html` `extrahead` override emitting canonical, `theme-color`, OpenGraph, Twitter (`summary_large_image`), and `robots` meta server-side, reading `config.extra.*` + `page.meta.*`. Mirror the hub's implementation once #29 lands (reuse the same override pattern). \u26a0\ufe0f MiniJinja \u2014 no Python string methods.\n- [ ] **JSON-LD** \u2014 per-page `Article` (not `TechArticle`) + a repo-level `SoftwareSourceCode`/`SoftwareApplication` node (name, description, `programmingLanguage`, `codeRepository` \u2192 this GitHub repo). `Organization` site-wide.\n- [ ] **Remove any client-side `seo.js`** if this repo carries a copy; server-side supersedes it.\n- [ ] **GEO content-shape pass** on the docs prose (biggest evidence-backed LLM-citation win): definition-first sentences (lead a config option with what it does), self-contained/chunkable `##`/`###` sections (restate the subject, don't rely on \"it\"/\"this\"), config/flag/env reference as **tables** not prose, language-tagged code fences (```yaml/```bash), strict one-H1-per-page hierarchy.\n- [ ] **robots.txt** \u2014 ensure this repo's `docs/robots.txt` allows the current AI UAs (`GPTBot`, `ClaudeBot`, `OAI-SearchBot`, `PerplexityBot`, `CCBot`, `Applebot-Extended`, `Meta-ExternalAgent`, plus user-action bots). (Note: the hub regenerates per-site `robots.txt` at merge time \u2014 keep the source consistent with the hub's policy.)\n- [ ] **Align zensical version** \u2014 match the fleet's pinned zensical version and Renovate handling as decided in Phase 1 (rknightion/m7kni-net-site#29). Depending on that decision this repo may drop zensical from its own CI entirely (if the hub build is the only consumer) or keep it pinned + Renovate-grouped for local/preview builds \u2014 follow the fleet approach from #29, don't invent a per-repo variant.\n\n## Acceptance criteria\n\n- [ ] Site is on-brand with the new m7kni.io scheme while reading as a clean, professional product-documentation site.\n- [ ] `curl` of a deployed page under m7kni.io/intune-assignments-manager/ (no JS) shows server-rendered OG/Twitter/canonical/JSON-LD/robots meta.\n- [ ] Docs pages follow the GEO content-shape checklist above.\n- [ ] zensical version handling matches the fleet decision in #29.\n- [ ] Site build green; renders correctly under the hub.\n\n## Notes\n\n- llms.txt / llms-full.txt / sitemaps for this site are generated centrally by the hub's scripts over this repo's Markdown \u2014 **not** per-repo work here.\n- Do the SEO/LLM + version tasks whenever useful; gate only the visual-redesign task on the hub spec.\n",
+    "closedAt": "2026-07-03T11:55:40Z",
+    "comments": [],
+    "createdAt": "2026-07-03T10:25:24Z",
+    "labels": [],
+    "milestone": null,
+    "number": 56,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "Docs site: redesign & rebrand alignment + SEO/LLM discoverability",
+    "updatedAt": "2026-07-03T11:55:40Z",
+    "url": "https://github.com/rknightion/intune-assignments-manager/issues/56"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "is_bot": true,
+      "login": "app/rknightion-renovate"
+    },
+    "body": "This issue lists Renovate updates and detected dependencies. Read the [Dependency Dashboard](https://docs.renovatebot.com/key-concepts/dashboard/) docs to learn more.\n\n## Deprecations / Replacements\n> [!WARNING]\nThe following dependencies are either deprecated or have replacements available.\n\n| Datasource | Package | Replacement PR? |\n|------------|------|--------------|\n| npm | [lucide-svelte](https://redirect.github.com/lucide-icons/lucide) | ![Unavailable](https://img.shields.io/badge/unavailable-orange?style=flat-square) |\n\n## Open\n\nThe following updates have all been created. To force a retry/rebase of any, click on a checkbox below.\n\n - [ ] <!-- rebase-branch=renovate/prettier-plugin-tailwindcss-0.x-lockfile -->[chore(deps): update dependency prettier-plugin-tailwindcss to v0.8.1](../pull/66)\n - [ ] <!-- rebase-branch=renovate/lock-file-maintenance -->[chore(deps): lock file maintenance](../pull/27)\n - [ ] <!-- rebase-all-open-prs -->**Click on this checkbox to rebase all open PRs at once**\n\n## PR Closed (Blocked)\n\nThe following updates are blocked by an existing closed PR. To recreate the PR, click on a checkbox below.\n\n - [ ] <!-- recreate-branch=renovate/sveltejs-vite-plugin-svelte-7.x -->[chore(deps): update dependency @sveltejs/vite-plugin-svelte to v7](../pull/18)\n - [ ] <!-- recreate-branch=renovate/vite-8.x -->[chore(deps): update dependency vite to v8](../pull/19)\n\n## Detected Dependencies\n\n<details><summary>github-actions (3)</summary>\n<blockquote>\n\n<details><summary>.github/workflows/ci.yml (15)</summary>\n\n - `actions/checkout v7@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `pnpm/action-setup v6@0977fd99725f1db4007ccb2928dbb4e90d06cc86`\n - `actions/setup-node v7@820762786026740c76f36085b0efc47a31fe5020`\n - `actions/checkout v7@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `pnpm/action-setup v6@0977fd99725f1db4007ccb2928dbb4e90d06cc86`\n - `actions/setup-node v7@820762786026740c76f36085b0efc47a31fe5020`\n - `actions/checkout v7@3d3c42e5aac5ba805825da76410c181273ba90b1`\n - `pnpm/action-setup v6@0977fd99725f1db4007ccb2928dbb4e90d06cc86`\n - `actions/setup-node v7@820762786026740c76f36085b0efc47a31fe5020`\n - `pnpm 11`\n - `node 24`\n - `pnpm 11`\n - `node 24`\n - `pnpm 11`\n - `node 24`\n\n</details>\n\n<details><summary>.github/workflows/notify-new-issue.yml</summary>\n\n\n</details>\n\n<details><summary>.github/workflows/trigger-docs-sync.yml (1)</summary>\n\n - `peter-evans/repository-dispatch v4@28959ce8df70de7be546dd1250a005dd32156697`\n\n</details>\n\n</blockquote>\n</details>\n\n<details><summary>npm (2)</summary>\n<blockquote>\n\n<details><summary>package.json (23)</summary>\n\n - `@azure/msal-browser ^5.2.0`\n - `@fontsource-variable/jetbrains-mono ^5.2.8`\n - `@fontsource/geist-sans ^5.2.5`\n - `lucide-svelte ^1.0.0`\n - `zod ^4.3.6`\n - `@eslint/js ^10.0.1`\n - `@sveltejs/adapter-cloudflare ^7.2.8`\n - `@sveltejs/kit ^2.53.0`\n - `@sveltejs/vite-plugin-svelte ^6.2.4` \u2192 [Updates: `^7.0.0`]\n - `@tailwindcss/vite ^4.2.0`\n - `eslint ^10.0.1`\n - `eslint-config-prettier ^10.1.8`\n - `eslint-plugin-svelte ^3.15.0`\n - `globals ^17.3.0`\n - `prettier ^3.8.1`\n - `prettier-plugin-svelte ^4.0.0`\n - `prettier-plugin-tailwindcss ^0.8.0` \u2192 [Updates: `^0.8.0`]\n - `svelte ^5.53.2`\n - `svelte-check ^4.4.3`\n - `tailwindcss ^4.2.0`\n - `typescript ^6.0.3`\n - `typescript-eslint ^8.56.0`\n - `vite ^7.3.1` \u2192 [Updates: `^8.0.0`]\n\n</details>\n\n<details><summary>pnpm-workspace.yaml (1)</summary>\n\n - `postcss >=8.5.23`\n\n</details>\n\n</blockquote>\n</details>\n\n",
+    "closedAt": null,
+    "comments": [],
+    "createdAt": "2026-03-16T16:40:23Z",
+    "labels": [],
+    "milestone": null,
+    "number": 20,
+    "state": "OPEN",
+    "stateReason": "",
+    "title": "Dependency Dashboard",
+    "updatedAt": "2026-08-14T07:36:51Z",
+    "url": "https://github.com/rknightion/intune-assignments-manager/issues/20"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "is_bot": true,
+      "login": "app/renovate"
+    },
+    "body": "This issue lists Renovate updates and detected dependencies. Read the [Dependency Dashboard](https://docs.renovatebot.com/key-concepts/dashboard/) docs to learn more.<br>[View this repository on the Mend.io Web Portal](https://developer.mend.io/github/rknightion/intune-assignments-manager).\n\n## Rate-Limited\n\nThe following updates are currently rate-limited. To force their creation now, click on a checkbox below.\n\n - [ ] <!-- unlimit-branch=renovate/lucide-monorepo -->fix(deps): update dependency lucide-svelte to ^0.577.0\n - [ ] <!-- unlimit-branch=renovate/sveltejs-vite-plugin-svelte-7.x -->chore(deps): update dependency @sveltejs/vite-plugin-svelte to v7\n - [ ] <!-- unlimit-branch=renovate/vite-8.x -->chore(deps): update dependency vite to v8\n - [ ] <!-- unlimit-branch=renovate/lock-file-maintenance -->chore(deps): lock file maintenance\n - [ ] <!-- create-all-rate-limited-prs -->\ud83d\udd10 **Create all rate-limited PRs at once** \ud83d\udd10\n\n## Open\n\nThe following updates have all been created. To force a retry/rebase of any, click on a checkbox below.\n\n - [ ] <!-- rebase-branch=renovate/npm-svelte-vulnerability -->[chore(deps): update dependency svelte to v5.53.5 [security]](../pull/3)\n - [ ] <!-- rebase-branch=renovate/eslint-monorepo -->[chore(deps): update dependency eslint to v10.0.3](../pull/8)\n - [ ] <!-- rebase-branch=renovate/eslint-plugin-svelte-3.x-lockfile -->[chore(deps): update dependency eslint-plugin-svelte to v3.15.2](../pull/13)\n - [ ] <!-- rebase-branch=renovate/prettier-plugin-svelte-3.x-lockfile -->[chore(deps): update dependency prettier-plugin-svelte to v3.5.1](../pull/11)\n - [ ] <!-- rebase-branch=renovate/svelte-check-4.x-lockfile -->[chore(deps): update dependency svelte-check to v4.4.5](../pull/9)\n - [ ] <!-- rebase-branch=renovate/tailwindcss-monorepo -->[chore(deps): update tailwindcss monorepo to v4.2.1](../pull/12) (`@tailwindcss/vite`, `tailwindcss`)\n - [ ] <!-- rebase-branch=renovate/azure-ad-microsoft-authentication-library-for-js-monorepo -->[chore(deps): update dependency @azure/msal-browser to v5.5.0](../pull/14)\n - [ ] <!-- rebase-branch=renovate/sveltejs-kit-2.x-lockfile -->[chore(deps): update dependency @sveltejs/kit to v2.55.0](../pull/15)\n - [ ] <!-- rebase-branch=renovate/globals-17.x-lockfile -->[chore(deps): update dependency globals to v17.4.0](../pull/16)\n - [ ] <!-- rebase-branch=renovate/typescript-eslint-monorepo -->[chore(deps): update dependency typescript-eslint to v8.57.0](../pull/10)\n - [ ] <!-- rebase-all-open-prs -->**Click on this checkbox to rebase all open PRs at once**\n\n## Detected Dependencies\n\n<details><summary>github-actions (1)</summary>\n<blockquote>\n\n<details><summary>.github/workflows/trigger-docs-sync.yml (1)</summary>\n\n - `peter-evans/repository-dispatch v4@28959ce8df70de7be546dd1250a005dd32156697`\n\n</details>\n\n</blockquote>\n</details>\n\n<details><summary>npm (1)</summary>\n<blockquote>\n\n<details><summary>package.json (23)</summary>\n\n - `@azure/msal-browser ^5.2.0` \u2192 [Updates: `^5.2.0`]\n - `@fontsource-variable/jetbrains-mono ^5.2.8`\n - `@fontsource/geist-sans ^5.2.5`\n - `lucide-svelte ^0.575.0` \u2192 [Updates: `^0.577.0`]\n - `zod ^4.3.6`\n - `@eslint/js ^10.0.1`\n - `@sveltejs/adapter-cloudflare ^7.2.8`\n - `@sveltejs/kit ^2.53.0` \u2192 [Updates: `^2.53.0`]\n - `@sveltejs/vite-plugin-svelte ^6.2.4` \u2192 [Updates: `^7.0.0`]\n - `@tailwindcss/vite ^4.2.0` \u2192 [Updates: `^4.2.0`]\n - `eslint ^10.0.1` \u2192 [Updates: `^10.0.1`]\n - `eslint-config-prettier ^10.1.8`\n - `eslint-plugin-svelte ^3.15.0` \u2192 [Updates: `^3.15.0`]\n - `globals ^17.3.0` \u2192 [Updates: `^17.3.0`]\n - `prettier ^3.8.1`\n - `prettier-plugin-svelte ^3.5.0` \u2192 [Updates: `^3.5.0`]\n - `prettier-plugin-tailwindcss ^0.7.2`\n - `svelte ^5.53.2` \u2192 [Updates: `^5.53.2`]\n - `svelte-check ^4.4.3` \u2192 [Updates: `^4.4.3`]\n - `tailwindcss ^4.2.0` \u2192 [Updates: `^4.2.0`]\n - `typescript ^5.9.3`\n - `typescript-eslint ^8.56.0` \u2192 [Updates: `^8.56.0`]\n - `vite ^7.3.1` \u2192 [Updates: `^8.0.0`]\n\n</details>\n\n</blockquote>\n</details>\n\n---\n\n- [ ] <!-- manual job -->Check this box to trigger a request for Renovate to run again on this repository\n\n",
+    "closedAt": "2026-03-16T16:44:24Z",
+    "comments": [
+      {
+        "author": {
+          "login": "rknightion"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Closed: replaced by self-hosted Renovate dashboard.",
+        "createdAt": "2026-03-16T16:44:24Z",
+        "id": "IC_kwDORU57W87yiThz",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/rknightion/intune-assignments-manager/issues/5#issuecomment-4069079155",
+        "viewerDidAuthor": true
+      }
+    ],
+    "createdAt": "2026-03-01T08:01:10Z",
+    "labels": [],
+    "milestone": null,
+    "number": 5,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "title": "Dependency Dashboard",
+    "updatedAt": "2026-03-16T16:44:24Z",
+    "url": "https://github.com/rknightion/intune-assignments-manager/issues/5"
+  }
+]
