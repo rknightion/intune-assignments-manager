@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
+# CLOUD AGENTS ONLY: Local agents must not execute this script.
 # Manual environment setup for Codex Cloud and Claude Code cloud environments.
-# Configure either service's setup script as: bash scripts/cloud-setup.sh
+# Configure either service's setup script as: bash scripts/cloud-environment-setup.sh
 
 set -Eeuo pipefail
 

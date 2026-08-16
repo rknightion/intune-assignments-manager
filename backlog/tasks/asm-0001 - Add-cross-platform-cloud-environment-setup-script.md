@@ -5,14 +5,14 @@ status: Done
 assignee:
   - '@codex'
 created_date: '2026-08-16 10:33'
-updated_date: '2026-08-16 10:35'
+updated_date: '2026-08-16 10:49'
 labels: []
 dependencies: []
 references:
   - 'https://learn.chatgpt.com/docs/environments/cloud-environment#manual-setup'
   - 'https://code.claude.com/docs/en/cloud-environments#setup-scripts'
 modified_files:
-  - scripts/cloud-setup.sh
+  - scripts/cloud-environment-setup.sh
 type: chore
 ordinal: 1000
 ---
@@ -44,6 +44,8 @@ Provide a committed, idempotent setup script that can be pasted or invoked from 
 1. Add a repository-root-aware Bash setup script with pinned pnpm and Backlog.md versions.
 2. Install dependencies from the lockfile and verify the task-tracking and SvelteKit toolchain.
 3. Exercise idempotency, lint, type-check, and production build; then finalize the Backlog task.
+
+4. Rename the script to scripts/cloud-environment-setup.sh, add a prominent local-agent prohibition at the top, and rerun the full validation suite.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -52,10 +54,14 @@ Provide a committed, idempotent setup script that can be pasted or invoked from 
 Added the cross-platform setup script with pinned pnpm 10.28.1 and Backlog.md 1.50.1, repository discovery, frozen dependency installation, and toolchain verification.
 
 Validated direct invocation from outside the checkout; the script found the repository and completed successfully. pnpm lint, pnpm check, and pnpm build all passed.
+
+Renamed the entry point to scripts/cloud-environment-setup.sh and added a top-of-file instruction prohibiting local agents from executing it.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
 Added an idempotent Codex Cloud and Claude Code cloud setup script that pins pnpm and Backlog.md, installs the lockfile, discovers the checkout from any working directory, and verifies the SvelteKit toolchain. Direct invocation from /tmp, lint, svelte-check, and the Cloudflare production build all passed.
+
+Follow-up review changes renamed the script to scripts/cloud-environment-setup.sh and added an explicit cloud-only warning for local agents. Bash syntax, lint, svelte-check, and the production build passed without executing the cloud-only setup script locally.
 <!-- SECTION:FINAL_SUMMARY:END -->
