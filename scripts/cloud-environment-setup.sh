@@ -13,13 +13,16 @@ log() {
 }
 
 find_repo_root() {
-	if git_root="$(git rev-parse --show-toplevel 2>/dev/null)"; then
+	local script_dir
+	script_dir="$(dirname -- "${BASH_SOURCE[0]}")"
+
+	if git_root="$(git -C "$script_dir" rev-parse --show-toplevel 2>/dev/null)"; then
 		printf '%s\n' "$git_root"
 		return
 	fi
 
 	# Also support direct invocation when the caller is not in the checkout root.
-	cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
+	cd -- "$script_dir/.." || exit 1
 	pwd -P
 }
 
