@@ -1,9 +1,9 @@
 ---
 id: doc-0002
-title: 'Closed GitHub issues: pre-Backlog history index'
+title: Closed GitHub issues (pre-Backlog history index)
 type: other
 created_date: '2026-08-14 16:39'
-updated_date: '2026-08-14 16:39'
+updated_date: '2026-08-17 09:03'
 ---
 This repository tracked its work in GitHub Issues until 2026-08-14, when it moved to Backlog.md.
 Every issue was closed by then, so nothing was imported as a task — the board started empty, which
