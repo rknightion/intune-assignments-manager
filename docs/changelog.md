@@ -1,6 +1,6 @@
 ---
 title: Changelog
-description: Release history and notable changes
+description: Review Intune Assignments Manager releases, assignment workflows, interface changes, fixes, and dependency updates.
 tags:
   - changelog
   - releases
