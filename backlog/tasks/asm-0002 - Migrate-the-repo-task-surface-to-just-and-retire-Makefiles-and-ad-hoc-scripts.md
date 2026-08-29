@@ -1,10 +1,10 @@
 ---
 id: ASM-0002
 title: Migrate the repo task surface to just and retire Makefiles and ad-hoc scripts
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-28 19:20'
-updated_date: '2026-08-29 14:05'
+updated_date: '2026-08-29 14:08'
 labels:
   - 'wave:2-fleet'
 dependencies: []
@@ -417,22 +417,22 @@ needs a real CI run before being trusted.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Top-level justfile exists with all seven mandatory recipes (default, setup, fmt, fmt-check, lint, test, check) plus typecheck, build, dev, clean
-- [ ] #2 just check passes locally and is exactly what CI's lint/check/build jobs enforce (fmt-check, lint, typecheck, test)
-- [ ] #3 just --fmt --check passes
-- [ ] #4 just --list shows a doc comment and correct group for every public recipe
-- [ ] #5 No Makefile exists in the repo (none did before this task; confirm none was introduced)
-- [ ] #6 scripts/cloud-environment-setup.sh remains untouched and unabsorbed, per its KEEP classification
-- [ ] #7 .github/workflows/ci.yml's lint, check and build jobs call just recipes via a pinned extractions/setup-just step, and ci-success still gates on needs: [lint, check, build] unchanged
-- [ ] #8 AGENTS.md and README.md no longer tell a developer to run pnpm lint/pnpm check/pnpm build directly outside the quick-start clone snippet; they reference just recipes and AGENTS.md carries the Task interface section
-- [ ] #9 backlog/config.yml's definition_of_done names just lint, just typecheck and just build instead of raw pnpm invocations
+- [x] #1 Top-level justfile exists with all seven mandatory recipes (default, setup, fmt, fmt-check, lint, test, check) plus typecheck, build, dev, clean
+- [x] #2 just check passes locally and is exactly what CI's lint/check/build jobs enforce (fmt-check, lint, typecheck, test)
+- [x] #3 just --fmt --check passes
+- [x] #4 just --list shows a doc comment and correct group for every public recipe
+- [x] #5 No Makefile exists in the repo (none did before this task; confirm none was introduced)
+- [x] #6 scripts/cloud-environment-setup.sh remains untouched and unabsorbed, per its KEEP classification
+- [x] #7 .github/workflows/ci.yml's lint, check and build jobs call just recipes via a pinned extractions/setup-just step, and ci-success still gates on needs: [lint, check, build] unchanged
+- [x] #8 AGENTS.md and README.md no longer tell a developer to run pnpm lint/pnpm check/pnpm build directly outside the quick-start clone snippet; they reference just recipes and AGENTS.md carries the Task interface section
+- [x] #9 backlog/config.yml's definition_of_done names just lint, just typecheck and just build instead of raw pnpm invocations
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 pnpm lint passes with zero errors
-- [ ] #2 PUBLIC_ENTRA_CLIENT_ID=<any-guid> pnpm check passes with zero errors
-- [ ] #3 PUBLIC_ENTRA_CLIENT_ID=<any-guid> pnpm build passes with zero errors
+- [x] #1 pnpm lint passes with zero errors
+- [x] #2 PUBLIC_ENTRA_CLIENT_ID=<any-guid> pnpm check passes with zero errors
+- [x] #3 PUBLIC_ENTRA_CLIENT_ID=<any-guid> pnpm build passes with zero errors
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -453,6 +453,10 @@ Implemented the requested justfile, CI invocation migration, task-interface docu
 Found and repaired a pre-existing formatter-boundary defect: baseline CI run 33248499007 failed because `prettier --check .` scanned 10 tool-managed Backlog records and historical archive files. `.prettierignore` now excludes only `backlog/docs/`, `backlog/tasks/`, and `archive/`; source, workflows, docs, and `backlog/config.yml` remain formatted and checked.
 
 Local evidence: `just --fmt --check`, `just --dump --dump-format json`, `just setup`, `just check`, and `just build` pass; `svelte-check` reported 0 errors and 0 warnings; `actionlint` passed for the changed workflows. CodeRabbit is intentionally skipped because this change is declarative task/configuration/documentation wiring with no application branching.
+
+Direct Definition-of-Done validation also passed: `pnpm lint`, `pnpm check`, and `pnpm build` with the inert placeholder environment; `svelte-check` again reported 0 errors and 0 warnings. Implementation commit `f58129cfa2582048c04ca717739c817e0e24a981` has green CI run 33256726231: eslint / prettier, svelte-check, build, and ci-success all passed.
+
+The full Backlog identifier-pattern sweep reports three pre-existing inert/example matches in the task description and wave document; the added ASM-0002 plan, notes, and final-summary diff has zero matches.
 <!-- SECTION:NOTES:END -->
 
 ## Comments
@@ -498,3 +502,9 @@ Eleven of the 42 lanes arrived at this shape independently before it was ratifie
 **If this repo has no such legs, it has no `ci` recipe at all** and `check` is the whole gate. Do not add an empty one.
 ---
 <!-- COMMENTS:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Added the top-level justfile and migrated CI, agent guidance, README command documentation, and the project definition of done to it. Repaired the pre-existing Prettier boundary so tool-managed Backlog records and historical snapshots do not make the application gate fail, and annotated the existing shared broker-token pin with its verified release tag. Verified with justfile format/dump/list checks, just setup/check/build, actionlint, direct legacy DoD commands, and green CI run 33256726231 at f58129cfa2582048c04ca717739c817e0e24a981.
+<!-- SECTION:FINAL_SUMMARY:END -->
