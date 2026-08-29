@@ -8,9 +8,9 @@ Intune Assignments Manager — a SvelteKit web app for bulk-managing Microsoft I
 
 ## Quality Checks
 
-Always run the full build and type-check (`pnpm build`) after completing any code changes. Do not consider a task done until the build passes cleanly with zero errors.
+Always run the full build and type-check (`just build`) after completing any code changes. Do not consider a task done until the build passes cleanly with zero errors.
 
-After editing files, check for duplicate imports and stale references from the previous code. Run `pnpm lint` to catch these before proceeding.
+After editing files, check for duplicate imports and stale references from the previous code. Run `just lint` to catch these before proceeding.
 
 ## Svelte 5 Conventions
 
@@ -30,16 +30,23 @@ Keep the planning phase brief and present the plan for approval before exploring
 
 `todos.txt` and `todos-completed.txt` are the original build plan and every phase in them is shipped. They are **history, not a queue** — do not mine them for work. The open queue is `backlog task list --plain`.
 
-## Commands
+## Task interface
 
-- `pnpm install` — install dependencies (pnpm is enforced via `.npmrc`)
-- `pnpm dev` — start Vite dev server
-- `pnpm build` — production build (outputs to `.svelte-kit/cloudflare`)
-- `pnpm check` — TypeScript type-checking with svelte-check
-- `pnpm lint` — ESLint (flat config, strict TS rules)
-- `pnpm format` — Prettier auto-format
+This repo's task surface is a `justfile`. Discover it, don't guess it:
 
-No test framework is configured.
+    just --list                        # human-readable
+    just --dump --dump-format json     # machine-readable
+    just --show <recipe>               # what a recipe actually runs
+
+- `just check` is the full gate and is exactly what CI enforces (across its `lint`, `check` and
+  `build` jobs). It must pass before you commit.
+- Prefer `just <recipe>` over the underlying tool. If you are typing `pnpm exec eslint` or
+  `svelte-check`, you want `just lint` or `just typecheck`.
+- Run `just` with stdin from /dev/null. Recipes marked `[confirm]` are destructive — stop and ask
+  before running one; never pass `--yes` or `JUST_YES=1`.
+- If a task you need does not exist, add a recipe with a `#` doc comment and a `[group(...)]` rather
+  than running a bare command.
+- No test framework is configured in this repo — `just test` is a documented no-op.
 
 ## Tech Stack
 
@@ -118,6 +125,7 @@ Use the Claude Code Chrome MCP server to validate significant changes in a brows
 
 <!-- BACKLOG.MD GUIDELINES START -->
 <!-- backlog.md-instructions-version: 1.50.1 -->
+
 <CRITICAL_INSTRUCTION>
 
 ## Backlog.md Workflow
@@ -129,6 +137,7 @@ This project uses Backlog.md for task and project management.
 Use the overview to decide whether to search, read, create, or update Backlog tasks.
 
 Before task lifecycle actions, read the matching detailed guide:
+
 - `backlog instructions task-creation` before creating or splitting tasks
 - `backlog instructions task-execution` before planning, changing status or assignee, adding a plan or implementation notes, or implementing task work
 - `backlog instructions task-finalization` before checking acceptance criteria, writing final summaries, or moving tasks to terminal statuses
@@ -151,9 +160,9 @@ Rules this project adds on top of the block above. They sit outside the tool-man
 - **Microsoft Graph endpoint findings (live-verified)** — which Intune endpoints actually respond. Read it before building on any endpoint; add to it rather than re-probing.
 - **Closed GitHub issues: pre-Backlog history index** — the pre-2026-08-14 history, whose full record is `archive/issues-dump.json`.
 
-**Never use `--notes` or `--plan` bare.** They *silently replace* the whole section, destroying another session's writes with no warning and exit 0. Use `--append-notes` and `--append-plan`. This is an open upstream bug, not a misunderstanding, and a global `PreToolUse` hook in the agent config denies the bare forms rather than trusting anyone to remember.
+**Never use `--notes` or `--plan` bare.** They _silently replace_ the whole section, destroying another session's writes with no warning and exit 0. Use `--append-notes` and `--append-plan`. This is an open upstream bug, not a misunderstanding, and a global `PreToolUse` hook in the agent config denies the bare forms rather than trusting anyone to remember.
 
-**Never hand-edit task, draft, doc, decision or milestone markdown.** Section boundaries are HTML-comment markers; break one and the section is *silently dropped* at exit 0 — still in the file, invisible to the CLI, until the next write destroys it for real. There is no repair command; `backlog doctor` only fixes duplicate task IDs. The guard hook denies these edits too. `backlog/config.yml` is the one exemption: list-valued keys cannot be set through `backlog config set`, so it is edited by hand.
+**Never hand-edit task, draft, doc, decision or milestone markdown.** Section boundaries are HTML-comment markers; break one and the section is _silently dropped_ at exit 0 — still in the file, invisible to the CLI, until the next write destroys it for real. There is no repair command; `backlog doctor` only fixes duplicate task IDs. The guard hook denies these edits too. `backlog/config.yml` is the one exemption: list-valued keys cannot be set through `backlog config set`, so it is edited by hand.
 
 **Finalize in one call**, so an interrupted agent cannot leave finished work looking unfinished:
 

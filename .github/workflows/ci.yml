@@ -40,14 +40,15 @@ jobs:
           node-version: 24
           cache: pnpm
 
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+        with:
+          just-version: '1.58.0'
+
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      - name: eslint
-        run: pnpm lint
-
-      - name: prettier
-        run: pnpm exec prettier --check .
+      - name: lint + fmt-check
+        run: just lint fmt-check
 
   check:
     name: svelte-check
@@ -66,6 +67,10 @@ jobs:
           node-version: 24
           cache: pnpm
 
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+        with:
+          just-version: '1.58.0'
+
       - name: Install
         run: pnpm install --frozen-lockfile
 
@@ -74,7 +79,7 @@ jobs:
       # errors sat unnoticed behind a green build while TypeScript 7 had both tools
       # crashing. See the TypeScript pin in renovate.json.
       - name: svelte-check
-        run: pnpm check
+        run: just typecheck
 
   build:
     name: build
@@ -93,6 +98,10 @@ jobs:
           node-version: 24
           cache: pnpm
 
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+        with:
+          just-version: '1.58.0'
+
       - name: Install
         run: pnpm install --frozen-lockfile
 
@@ -100,7 +109,7 @@ jobs:
       # $env/static/public resolves at build time and Rollup fails outright
       # without it.
       - name: Build
-        run: pnpm build
+        run: just build
 
   # Single required check for the branch ruleset. Adding or renaming a job above
   # only needs updating here, not in the ruleset.

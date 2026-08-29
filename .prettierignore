@@ -7,3 +7,8 @@ yarn.lock
 .svelte-kit
 build
 .wrangler
+
+# Tool-managed Backlog records and historical snapshots are not hand-formatted.
+backlog/docs/
+backlog/tasks/
+archive/

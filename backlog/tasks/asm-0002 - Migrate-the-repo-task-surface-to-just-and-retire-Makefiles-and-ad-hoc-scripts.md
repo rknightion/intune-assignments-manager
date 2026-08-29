@@ -1,10 +1,10 @@
 ---
 id: ASM-0002
 title: Migrate the repo task surface to just and retire Makefiles and ad-hoc scripts
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-28 19:20'
-updated_date: '2026-08-29 10:42'
+updated_date: '2026-08-29 14:05'
 labels:
   - 'wave:2-fleet'
 dependencies: []
@@ -434,6 +434,26 @@ needs a real CI run before being trusted.
 - [ ] #2 PUBLIC_ENTRA_CLIENT_ID=<any-guid> pnpm check passes with zero errors
 - [ ] #3 PUBLIC_ENTRA_CLIENT_ID=<any-guid> pnpm build passes with zero errors
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Verify the current task surface, CI workflow, documentation, scripts, hooks, and repository cleanliness.
+2. Add the prescribed top-level justfile and validate its format, metadata, and local task gate.
+3. Convert only the CI build/lint/typecheck command bodies to pinned just invocations while preserving job topology.
+4. Update the agent contract, README command list, and definition of done; search for stale removed command references.
+5. Run the prescribed local gates, review the final diff, commit and push named paths, verify CI at the final SHA, then finalize ASM-0002 with evidence.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented the requested justfile, CI invocation migration, task-interface documentation, definition-of-done update, and Renovate version annotation for the existing shared broker-token composite action.
+
+Found and repaired a pre-existing formatter-boundary defect: baseline CI run 33248499007 failed because `prettier --check .` scanned 10 tool-managed Backlog records and historical archive files. `.prettierignore` now excludes only `backlog/docs/`, `backlog/tasks/`, and `archive/`; source, workflows, docs, and `backlog/config.yml` remain formatted and checked.
+
+Local evidence: `just --fmt --check`, `just --dump --dump-format json`, `just setup`, `just check`, and `just build` pass; `svelte-check` reported 0 errors and 0 warnings; `actionlint` passed for the changed workflows. CodeRabbit is intentionally skipped because this change is declarative task/configuration/documentation wiring with no application branching.
+<!-- SECTION:NOTES:END -->
 
 ## Comments
 

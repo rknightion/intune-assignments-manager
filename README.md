@@ -48,11 +48,14 @@ pnpm dev
 Other commands:
 
 ```sh
-pnpm build    # production build to .svelte-kit/cloudflare
-pnpm check    # TypeScript / svelte-check
-pnpm lint     # ESLint
-pnpm format   # Prettier
+just build      # production build to .svelte-kit/cloudflare
+just typecheck  # TypeScript / svelte-check
+just lint       # ESLint
+just fmt        # Prettier (in place)
+just check      # the full gate — everything CI enforces
 ```
+
+Run `just --list` for the complete task surface.
 
 ## Contributing
 
