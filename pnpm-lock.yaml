@@ -25,7 +25,7 @@ importers:
         version: 1.0.1(svelte@5.56.10(@typescript-eslint/types@8.68.0))
       zod:
         specifier: ^4.3.6
-        version: 4.4.3
+        version: 4.5.1
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -1856,8 +1856,8 @@ packages:
   zimmerframe@1.1.4:
     resolution: {integrity: sha512-B58NGBEoc8Y9MWWCQGl/gq9xBCe4IiKM0a2x7GZdQKOW5Exr8S1W24J6OgM1njK8xCRGvAJIL/MxXHf6SkmQKQ==}
 
-  zod@4.4.3:
-    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
+  zod@4.5.1:
+    resolution: {integrity: sha512-P3GqeAEOEDqKvafVGLezbg+39YW/ze4xrD4qdS0adOY8eoI3zfjv1PQM4UwQzgT8mZKXEbqtVt8K+ZKGqkMFKg==}
 
 snapshots:
 
@@ -3282,4 +3282,4 @@ snapshots:
 
   zimmerframe@1.1.4: {}
 
-  zod@4.4.3: {}
+  zod@4.5.1: {}
