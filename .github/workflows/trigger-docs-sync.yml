@@ -32,7 +32,7 @@ jobs:
       # they all dispatch at the same hub; the per-repo control is the role.
       - name: Mint a scoped docs-sync token
         id: bao
-        uses: rknightion/.github/.github/actions/broker-token@79a72d215e806c12876526ff30fbd524250e1bf9 # v1.17.1
+        uses: rknightion/.github/.github/actions/broker-token@ff43f62eaec9f41d49b9a208d86b2eb932c97056 # v1.18.1
         with:
           permission-set: docs-sync
           role: docs-sync-intune-assignments-manager
