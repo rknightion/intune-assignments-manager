@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Product-specific additions to the central CodeRabbit defaults.
+# Keep inheritance enabled; shared review policy lives in the owner/coderabbit repository.
+inheritance: true
+reviews:
+  path_instructions:
+  - path: src/lib/auth/**
+    instructions: >-
+      Review this as browser-only OAuth2 PKCE with no trusted backend. Preserve SSR-safe lazy MSAL loading,
+      token acquisition and expiry handling, least-privilege incremental consent, and clear 401 versus
+      403 recovery. Public application identifiers may enter the client bundle; client secrets and privileged
+      server credentials must not. Follow the documented browser token-cache and tenant-data policy.
+  - path: src/lib/graph/**
+    instructions: >-
+      Treat Microsoft Graph as an external partial-failure boundary. Preserve API-version choice per endpoint,
+      @odata.nextLink pagination caps, batch chunks of at most 20, request identity, Retry-After semantics,
+      bounded 429/5xx retries and per-item batch errors. Assignment endpoints replace the full set: fetch
+      current assignments, merge without dropping unrelated inclusions/exclusions or settings, detect
+      conflicts, then apply. Never retry a successful destructive item or report a partially applied batch
+      as complete.
+  - path: src/lib/types/**
+    instructions: >-
+      Keep TypeScript interfaces, Zod runtime schemas and business types synchronized. Graph payloads
+      are untrusted and versioned; accept documented optional/nullable fields, reject structurally unsafe
+      data with actionable errors, and avoid schemas that silently strip values needed to preserve assignments.
+  - path: src/lib/stores/**
+    instructions: >-
+      Use Svelte 5 reactive collections and runes correctly. Check stale async writes after account changes
+      or navigation, permission-derived state, and localStorage cache keys, expiry, invalidation and tenant/account
+      separation. Do not persist access tokens or sensitive Graph payloads beyond the documented cache
+      contract.
