@@ -13,6 +13,13 @@ auth and API calls happen in the browser.
 type-check and build resolve without one. Override it in `.env` for `just dev` - a real sign-in needs
 the real client ID.
 
+With no test suite, a browser check is the only real verification: run `just dev`, exercise the
+change at the URL it prints, and confirm the console is clean. Worth doing for a new feature or a
+major change, not after every edit.
+
+`just clean` is `[confirm]`-marked and removes `node_modules` along with the build output; never
+pass `--yes` or `JUST_YES=1` to skip that prompt.
+
 ## Graph traps
 
 - The base is `https://graph.microsoft.com/beta`. Many Intune endpoints are `/beta`-only, deprecated,
@@ -49,3 +56,18 @@ grep -rniE "@[a-z0-9-]+\.(com|net|io|onmicrosoft\.com)|[0-9a-f]{8}-[0-9a-f]{4}-[
 Read the **Agent fan-out protocol (canonical)** doc before designing a wave, and the **Wave operating
 model** doc for this project's lane boundaries and exclusive resources. Earlier GitHub issue history
 is indexed in the **Closed GitHub issues** doc, with the full record in `archive/issues-dump.json`.
+
+Backlog CLI traps, each of which loses data silently at exit 0:
+
+- **Never `--notes`, `--plan` or `--final-summary` bare.** Each REPLACES its whole section, wiping
+  another session's writes with no warning. Use `--append-notes`, `--append-plan`,
+  `--append-final-summary`. A hook in the agent config denies the bare forms.
+- **Never hand-edit task, draft, doc, decision or milestone markdown.** Section boundaries are
+  HTML-comment markers; break one and the section is dropped silently - still in the file, invisible
+  to the CLI, until the next write destroys it for real. There is no repair command; `backlog doctor`
+  only fixes duplicate task IDs. `backlog/config.yml` is the one deliberate exemption, because
+  list-valued keys cannot be set through `backlog config set`.
+- **Never let two agents edit the same task.** The concurrent-edit fix covers the edit funnel but not
+  reorder, draft saves, the TUI edit path, `doc update` or decision updates.
+- **Finalize in one call**, so an interrupted run cannot leave finished work looking unfinished:
+  `backlog task edit asm-0007 --check-ac 1 --check-ac 2 -s Done`.
