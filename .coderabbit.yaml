@@ -29,3 +29,10 @@ reviews:
       or navigation, permission-derived state, and localStorage cache keys, expiry, invalidation and tenant/account
       separation. Do not persist access tokens or sensitive Graph payloads beyond the documented cache
       contract.
+knowledge_base:
+  linked_repositories:
+  - repository: m7kni/m7kni-net-site
+    instructions: >-
+      Documentation hub. This repository dispatches documentation changes to the hub, which clones the
+      docs source and builds it. Check docs_path, config_file and the dispatch payload against this
+      repository's entry in the hub's docs-repos.json manifest.
