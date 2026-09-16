@@ -102,3 +102,9 @@ Apps = "apps"
 Authentication = "authentication"
 CSV = "csv"
 Audit = "audit"
+[backlog]
+enabled = true
+title = "Backlog"
+include_completed = true
+include_docs = true
+include_decisions = true
