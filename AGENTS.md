@@ -4,10 +4,11 @@ SvelteKit app for bulk-managing Intune app and configuration-profile assignments
 Graph. Deployed to Cloudflare Pages, client-side only: no server backend, no Node built-ins, and all
 auth and API calls happen in the browser.
 
-## Gate
+## Task interface
 
 `just check` is the PR gate, but CI runs a separate build job, so a change is not proven until both
-`just check` and `just build` pass. There is no test framework; `just test` is a deliberate no-op.
+`just check` and `just build` pass. There is no `just ci` recipe. There is no test framework;
+`just test` is a deliberate no-op.
 
 `PUBLIC_ENTRA_CLIENT_ID` is the only env var, and the justfile exports an all-zeros placeholder so
 type-check and build resolve without one. Override it in `.env` for `just dev` - a real sign-in needs
