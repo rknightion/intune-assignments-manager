@@ -50,6 +50,6 @@ list". Aggregate counts, timings and structural findings are fine. Sweep before 
 grep -rniE "@[a-z0-9-]+\.(com|net|io|onmicrosoft\.com)|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" backlog/ && echo "IDENTIFIERS FOUND"
 ```
 
-Read the **Agent fan-out protocol (canonical)** doc before designing a wave, and the **Wave operating
-model** doc for this project's lane boundaries and exclusive resources. Earlier GitHub issue history
-is indexed in the **Closed GitHub issues** doc, with the full record in `archive/issues-dump.json`.
+Loops: the protocol lives in `~/repos/agent-docs/sources/loop/` (this board's "Loop protocol pointer" doc points there); this repository's loop facts are in `LOOP.md`.
+
+Earlier GitHub issue history is indexed in the **Closed GitHub issues** doc, with the full record in `archive/issues-dump.json`.
