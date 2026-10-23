@@ -34,11 +34,6 @@ pass `--yes` or `JUST_YES=1` to skip that prompt.
 Use `SvelteMap` / `SvelteSet` from `svelte/reactivity` rather than native `Map`/`Set` in reactive
 state, `const` (not `let`) for `$derived`, no `svelte:component`, and a unique key on every `{#each}`.
 
-## Do not mine `todos.txt`
-
-`todos.txt` and `todos-completed.txt` are the original build plan and are history, not a queue. The
-open queue is `backlog task list --plain`.
-
 ## Task tracking
 
 Tasks are `asm-NNNN`. `backlog/` is committed to a **public** repository, so tasks and docs must never
