@@ -1,4 +1,5 @@
 # Loop: intune-assignments-manager
+
 tier: routine
 gate: just check
 ci-required: ci-success
