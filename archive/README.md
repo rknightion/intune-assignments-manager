@@ -21,7 +21,7 @@ jq -r '.[] | select(.number == 85) | .comments[] | .body' archive/issues-dump.js
 
 ## Redaction
 
-`backlog/` and this archive are committed to a **public** repository, so identifiers were
+The retired task board and this archive were committed to a **public** repository, so identifiers were
 replaced before the file entered git. Deleting issues that quote a private host name while
 committing that same name into permanent public history would move the identifier from
 somewhere deletable to somewhere that is not.
