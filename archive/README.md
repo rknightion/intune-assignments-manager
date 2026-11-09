@@ -8,8 +8,8 @@ pointer** — the issues it describes no longer exist on github.com.
 state reasons. Comment completeness was verified against the REST API's own per-issue
 `comments` counts, which match the dump exactly for all 9.
 
-The closed-work index in the tracker (`backlog doc list --plain`) is the readable summary; this
-file is the underlying detail.
+The closed-work index in `.github/tracker/history/` (the Closed GitHub issues doc) is the readable
+summary; this file is the underlying detail.
 
 ## Reading it
 

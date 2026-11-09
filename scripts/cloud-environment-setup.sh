@@ -6,7 +6,6 @@
 set -Eeuo pipefail
 
 readonly PNPM_VERSION='10.28.1'
-readonly BACKLOG_VERSION='1.50.1'
 
 log() {
 	printf '\n[cloud-setup] %s\n' "$*"
@@ -52,17 +51,12 @@ command -v npm >/dev/null 2>&1 || {
 log "Activating pnpm ${PNPM_VERSION}"
 install_pnpm
 
-log "Installing Backlog.md ${BACKLOG_VERSION}"
-npm install --global "backlog.md@${BACKLOG_VERSION}"
-
 log 'Installing project dependencies from pnpm-lock.yaml'
 pnpm install --frozen-lockfile
 
 log 'Verifying the cloud task toolchain'
 printf 'Node.js:    %s\n' "$(node --version)"
 printf 'pnpm:      %s\n' "$(pnpm --version)"
-printf 'Backlog.md: %s\n' "$(backlog --version)"
-backlog instructions overview >/dev/null
 pnpm exec svelte-kit sync
 
 log 'Environment setup complete'

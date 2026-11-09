@@ -1,0 +1,22 @@
+{
+ "held": {},
+ "issues": {
+  "ASM-0001": {
+   "number": 134,
+   "url": "https://github.com/rknightion/intune-assignments-manager/issues/134"
+  },
+  "ASM-0002": {
+   "number": 135,
+   "url": "https://github.com/rknightion/intune-assignments-manager/issues/135"
+  },
+  "ASM-0003": {
+   "number": 136,
+   "url": "https://github.com/rknightion/intune-assignments-manager/issues/136"
+  }
+ },
+ "prefix": "ASM",
+ "repo": "rknightion/intune-assignments-manager",
+ "schema": 1,
+ "source_sha": "9ddf6c18df8bb2878bd510776eba414836e2b4aa",
+ "synthetic": []
+}

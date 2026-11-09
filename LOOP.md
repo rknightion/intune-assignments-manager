@@ -4,11 +4,28 @@ tier: routine
 gate: just check
 ci-required: ci-success
 grafana-stack: none
+tracker: github
+landing: pr
+
+The tracker working model is `~/repos/agent-docs/docs/github-tracker.md` (maintainers only).
 
 Public repository: no tenant ID, object ID, UPN, email, device or group name, or any value copied
 from a live tenant in any tracked file or loop artifact. The gate is `just check` plus `just build`
 (CI runs a separate build job); there is no test framework and `just test` is a deliberate no-op,
 so do not invent a harness mid-run. Say whether a change was gate-verified and browser-verified.
+
+## Queue
+
+- The queue is `just tracker queue`: open issues at Project Status Ready on the rknightion Project.
+- A charter selects work by labels (`type:task`, `type:bug`, `type:feature`, `needs-owner`,
+  `needs-triage`) and Project fields (Status, Priority, Effort, Lane). Never queue a `needs-owner` or
+  `needs-triage` issue.
+- Only the root writes issues and the Project, through `just tracker`. A lane returns the status and
+  the AC ticks it wants.
+- A queue row names the issue as `#N`. A legacy board id (`ASM-0001`) resolves with `just issue <ID>`;
+  `.github/tracker/id-map.json` is the map.
+- Issues are public: no tenant ID, object ID, UPN, email, device or group name in any issue or pull
+  request.
 
 ## Credentials
 
@@ -42,7 +59,7 @@ so do not invent a harness mid-run. Say whether a change was gate-verified and b
   produce 429s that look like app bugs.
 - Single owner, never parallel: `src/routes/+layout.svelte` (sidebar registry),
   `src/lib/graph/client.ts`, `src/lib/types/graph.ts`, `schemas.ts`, `wizard.ts` (the frozen type
-  seam), `src/app.css`, `src/lib/graph/execute.ts` and `backlog/config.yml`. Freeze the type seam
+  seam), `src/app.css`, `src/lib/graph/execute.ts`. Freeze the type seam
   and token names before lanes fan out.
 - Natural lanes: one route family each (`src/routes/<area>/` plus components used only by it), one
   Graph domain module each (`compliance.ts`, `security.ts`, `devices.ts`, `status.ts`,
