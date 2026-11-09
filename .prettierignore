@@ -8,7 +8,6 @@ yarn.lock
 build
 .wrangler
 
-# Tool-managed Backlog records and historical snapshots are not hand-formatted.
-backlog/docs/
-backlog/tasks/
+# The retired board's records and historical snapshots are not hand-formatted.
+.github/tracker/history/
 archive/
