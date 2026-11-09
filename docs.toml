@@ -63,6 +63,7 @@ Development = [
     { Setup = "development/setup.md" },
     { Architecture = "development/architecture.md" },
     { "Graph API Client" = "development/graph-client.md" },
+    { "Graph Endpoint Findings" = "development/graph-endpoint-findings.md" },
     { Authentication = "development/auth.md" },
     { Contributing = "development/contributing.md" },
 ]
