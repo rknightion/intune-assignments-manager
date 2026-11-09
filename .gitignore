@@ -26,7 +26,8 @@ vite.config.ts.timestamp-*
 docs/superpowers/
 
 # Claude Code repo-local config. `settings.json` and `hooks/` ARE tracked — they
-.claude/
+.claude/*
+!.claude/skills/
 
 # Zensical docs build output (the hub builds from docs/ - this is local-only)
 /site
