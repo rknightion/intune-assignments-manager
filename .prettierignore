@@ -11,3 +11,9 @@ build
 # The retired board's records and historical snapshots are not hand-formatted.
 .github/tracker/history/
 archive/
+
+# The contributor kit is vended from rknightion/.github and must stay byte for
+# byte as vended; AGENTS.md carries its managed block.
+.agents/skills/
+.vended.json
+AGENTS.md
