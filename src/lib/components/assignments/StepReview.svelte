@@ -1,15 +1,15 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import Spinner from '$lib/components/ui/Spinner.svelte';
-	import Tabs from '$lib/components/ui/Tabs.svelte';
-	import AssignmentDiff from '$lib/components/assignments/AssignmentDiff.svelte';
-	import { getGraphClient } from '$lib/stores/graph';
-	import { toFriendlyMessage } from '$lib/graph/errors';
-	import { resolveGroupNames } from '$lib/stores/group-cache';
-	import { ensureFiltersLoaded } from '$lib/stores/filter-cache';
-	import { getTargetKey, buildAssignmentTarget, buildExclusionTarget } from '$lib/graph/merge';
-	import { computeFullDiff } from '$lib/utils/diff';
+	import Badge from '#lib/components/ui/Badge.svelte';
+	import Spinner from '#lib/components/ui/Spinner.svelte';
+	import Tabs from '#lib/components/ui/Tabs.svelte';
+	import AssignmentDiff from '#lib/components/assignments/AssignmentDiff.svelte';
+	import { getGraphClient } from '#lib/stores/graph';
+	import { toFriendlyMessage } from '#lib/graph/errors';
+	import { resolveGroupNames } from '#lib/stores/group-cache';
+	import { ensureFiltersLoaded } from '#lib/stores/filter-cache';
+	import { getTargetKey, buildAssignmentTarget, buildExclusionTarget } from '#lib/graph/merge';
+	import { computeFullDiff } from '#lib/utils/diff';
 	import { AlertTriangle, ArrowRight } from 'lucide-svelte';
 	import type {
 		MobileAppAssignment,
@@ -18,10 +18,10 @@
 		AssignmentTarget,
 		BatchRequestItem,
 		GraphPagedResponse
-	} from '$lib/types/graph';
-	import type { WizardState, AssignmentConflict, GroupTarget } from '$lib/types/wizard';
-	import type { AssignmentDiffResult } from '$lib/types/diff';
-	import type { DiffItemParams } from '$lib/utils/diff';
+	} from '#lib/types/graph';
+	import type { WizardState, AssignmentConflict, GroupTarget } from '#lib/types/wizard';
+	import type { AssignmentDiffResult } from '#lib/types/diff';
+	import type { DiffItemParams } from '#lib/utils/diff';
 
 	interface Props {
 		wizard: WizardState;

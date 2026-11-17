@@ -1,14 +1,14 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { Monitor, Users, UsersRound, X } from 'lucide-svelte';
-	import SearchInput from '$lib/components/ui/SearchInput.svelte';
-	import Spinner from '$lib/components/ui/Spinner.svelte';
-	import Toggle from '$lib/components/ui/Toggle.svelte';
-	import { getGraphClient } from '$lib/stores/graph';
-	import { searchGroups } from '$lib/graph/groups';
-	import { toFriendlyMessage } from '$lib/graph/errors';
-	import type { Group } from '$lib/types/graph';
-	import type { GroupTarget } from '$lib/types/wizard';
+	import SearchInput from '#lib/components/ui/SearchInput.svelte';
+	import Spinner from '#lib/components/ui/Spinner.svelte';
+	import Toggle from '#lib/components/ui/Toggle.svelte';
+	import { getGraphClient } from '#lib/stores/graph';
+	import { searchGroups } from '#lib/graph/groups';
+	import { toFriendlyMessage } from '#lib/graph/errors';
+	import type { Group } from '#lib/types/graph';
+	import type { GroupTarget } from '#lib/types/wizard';
 
 	// ─── Props ──────────────────────────────────────────────────────
 

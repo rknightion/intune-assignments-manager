@@ -31,7 +31,7 @@ so do not invent a harness mid-run. Say whether a change was gate-verified and b
 
 - None held by the loop. `PUBLIC_ENTRA_CLIENT_ID` is the only env var; the justfile exports an
   all-zeros placeholder so type-check and build resolve. A failure about
-  `$env/static/public` is that missing variable, not a code error: do not touch
+  `$app/env/public` is that missing variable, not a code error: do not touch
   `src/lib/auth/config.ts`.
 
 ## Traps

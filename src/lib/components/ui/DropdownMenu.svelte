@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import type { IconComponent } from '$lib/types/ui';
+	import type { IconComponent } from '#lib/types/ui';
 	import type { Snippet } from 'svelte';
 	import { ChevronDown } from 'lucide-svelte';
 

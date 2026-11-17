@@ -7,7 +7,7 @@ import type {
 	DevicePolicyComplianceState,
 	DeviceActionInfo,
 	ManagementAgent
-} from '$lib/types/device';
+} from '#lib/types/device';
 
 export interface DeviceTypeInfo {
 	label: string;

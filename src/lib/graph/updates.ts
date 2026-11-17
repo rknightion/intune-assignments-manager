@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import type { GraphClient } from './client';
-import type { GraphPagedResponse } from '$lib/types/graph';
+import type { GraphPagedResponse } from '#lib/types/graph';
 import type {
 	WindowsUpdateForBusinessConfiguration,
 	WindowsFeatureUpdateProfile,
@@ -9,14 +9,14 @@ import type {
 	WindowsDriverUpdateProfile,
 	UpdateAssignment,
 	UpdateRingDeviceStatus
-} from '$lib/types/updates';
+} from '#lib/types/updates';
 import {
 	windowsUpdateForBusinessConfigurationSchema,
 	windowsFeatureUpdateProfileSchema,
 	windowsQualityUpdateProfileSchema,
 	windowsDriverUpdateProfileSchema,
 	updateAssignmentSchema
-} from '$lib/types/update-schemas';
+} from '#lib/types/update-schemas';
 
 // ─── Update Rings ──────────────────────────────────────────────────
 

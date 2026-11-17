@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import type { GraphClient } from './client';
-import type { GraphPagedResponse } from '$lib/types/graph';
+import type { GraphPagedResponse } from '#lib/types/graph';
 import type {
 	MobileAppInstallSummary,
 	IntuneReportResponse,
@@ -12,14 +12,14 @@ import type {
 	DeviceComplianceDeviceStatus,
 	SettingStateDeviceSummary,
 	DeviceComplianceSettingState
-} from '$lib/types/status';
+} from '#lib/types/status';
 import {
 	deviceConfigurationDeviceStatusSchema,
 	deviceConfigurationDeviceOverviewSchema,
 	deviceComplianceDeviceStatusSchema,
 	settingStateDeviceSummarySchema,
 	deviceComplianceSettingStateSchema
-} from '$lib/types/status-schemas';
+} from '#lib/types/status-schemas';
 
 // Config/compliance status endpoints use v1.0
 const V1 = { version: 'v1.0' as const };

@@ -1,37 +1,37 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Spinner from '$lib/components/ui/Spinner.svelte';
-	import ErrorState from '$lib/components/ui/ErrorState.svelte';
-	import PolicySelector from '$lib/components/compare/PolicySelector.svelte';
-	import ComparisonSummaryBar from '$lib/components/compare/ComparisonSummaryBar.svelte';
-	import SettingDiffRow from '$lib/components/compare/SettingDiffRow.svelte';
-	import AssignmentDiffTable from '$lib/components/compare/AssignmentDiffTable.svelte';
-	import Tabs from '$lib/components/ui/Tabs.svelte';
+	import AuthGuard from '#lib/components/ui/AuthGuard.svelte';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Spinner from '#lib/components/ui/Spinner.svelte';
+	import ErrorState from '#lib/components/ui/ErrorState.svelte';
+	import PolicySelector from '#lib/components/compare/PolicySelector.svelte';
+	import ComparisonSummaryBar from '#lib/components/compare/ComparisonSummaryBar.svelte';
+	import SettingDiffRow from '#lib/components/compare/SettingDiffRow.svelte';
+	import AssignmentDiffTable from '#lib/components/compare/AssignmentDiffTable.svelte';
+	import Tabs from '#lib/components/ui/Tabs.svelte';
 	import { GitCompareArrows, ArrowRightLeft, Download } from 'lucide-svelte';
-	import { getGraphClient } from '$lib/stores/graph';
-	import { toFriendlyMessage } from '$lib/graph/errors';
+	import { getGraphClient } from '#lib/stores/graph';
+	import { toFriendlyMessage } from '#lib/graph/errors';
 	import {
 		listConfigPolicies,
 		getConfigPolicySettings,
 		getConfigAssignments
-	} from '$lib/graph/configurations';
-	import { listCompliancePolicies, getCompliancePolicyAssignments } from '$lib/graph/compliance';
+	} from '#lib/graph/configurations';
+	import { listCompliancePolicies, getCompliancePolicyAssignments } from '#lib/graph/compliance';
 	import {
 		listSecurityPolicies,
 		getSecurityPolicySettings,
 		getConfigAssignments as getSecurityAssignments
-	} from '$lib/graph/security';
+	} from '#lib/graph/security';
 	import {
 		comparePolicySettings,
 		comparePolicyAssignments,
 		generateComparisonSummary
-	} from '$lib/utils/policy-compare';
-	import { serializeCsv } from '$lib/utils/csv';
-	import { downloadCsv } from '$lib/utils/csv-download';
-	import type { PolicyType, ComparisonStatus, PolicyComparisonResult } from '$lib/types/compare';
+	} from '#lib/utils/policy-compare';
+	import { serializeCsv } from '#lib/utils/csv';
+	import { downloadCsv } from '#lib/utils/csv-download';
+	import type { PolicyType, ComparisonStatus, PolicyComparisonResult } from '#lib/types/compare';
 
 	// ─── Selection State ──────────────────────────────────────────
 

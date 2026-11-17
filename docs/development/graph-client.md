@@ -13,7 +13,7 @@ The Graph API client lives in `src/lib/graph/client.ts` and is the sole interfac
 ## Overview
 
 ```typescript
-import { createGraphClient, type GraphClient } from '$lib/graph/client';
+import { createGraphClient, type GraphClient } from '#lib/graph/client';
 
 const client: GraphClient = createGraphClient(getAccessToken);
 ```
@@ -22,8 +22,8 @@ The factory accepts a `getAccessToken` function that returns a `Promise<string>`
 
 ```typescript
 // src/lib/stores/graph.ts
-import { createGraphClient, type GraphClient } from '$lib/graph/client';
-import { getToken } from '$lib/stores/auth.svelte';
+import { createGraphClient, type GraphClient } from '#lib/graph/client';
+import { getToken } from '#lib/stores/auth.svelte';
 
 let clientInstance: GraphClient | null = null;
 
@@ -38,7 +38,7 @@ export function getGraphClient(): GraphClient {
 Components and Graph modules use the singleton:
 
 ```typescript
-import { getGraphClient } from '$lib/stores/graph';
+import { getGraphClient } from '#lib/stores/graph';
 
 const client = getGraphClient();
 const apps = await client.fetchAll('/deviceAppManagement/mobileApps');
@@ -189,7 +189,7 @@ Thrown when the authenticated user lacks the required permissions. Map this to a
 Utility function that converts any error into a user-facing string:
 
 ```typescript
-import { toFriendlyMessage } from '$lib/graph/errors';
+import { toFriendlyMessage } from '#lib/graph/errors';
 
 try {
 	await client.request('/some/endpoint');
@@ -206,7 +206,7 @@ try {
 Convenience function that converts the error to a friendly message and dispatches it to the toast notification system:
 
 ```typescript
-import { notifyGraphError } from '$lib/graph/errors';
+import { notifyGraphError } from '#lib/graph/errors';
 
 try {
 	await client.request('/some/endpoint');

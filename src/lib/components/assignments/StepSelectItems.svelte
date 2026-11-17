@@ -1,30 +1,30 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { X, Package, Search } from 'lucide-svelte';
-	import SearchInput from '$lib/components/ui/SearchInput.svelte';
-	import MultiSelectFilter from '$lib/components/ui/MultiSelectFilter.svelte';
-	import Skeleton from '$lib/components/ui/Skeleton.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import ErrorState from '$lib/components/ui/ErrorState.svelte';
-	import Tabs from '$lib/components/ui/Tabs.svelte';
-	import { getAppTypeInfo } from '$lib/utils/app-types';
-	import { getProfileTypeInfo } from '$lib/utils/profile-types';
-	import { getCompliancePlatformInfo } from '$lib/utils/compliance-types';
-	import { getSecurityCategoryInfo } from '$lib/utils/security-types';
-	import { getGraphClient } from '$lib/stores/graph';
-	import { listApps, getApp } from '$lib/graph/apps';
-	import { listConfigPolicies, getConfigPolicy } from '$lib/graph/configurations';
-	import { listCompliancePolicies, getCompliancePolicy } from '$lib/graph/compliance';
-	import { listSecurityPolicies } from '$lib/graph/security';
-	import { listUpdateRings } from '$lib/graph/updates';
-	import { listRemediationScripts } from '$lib/graph/remediations';
-	import { listScripts } from '$lib/graph/scripts';
-	import { toFriendlyMessage } from '$lib/graph/errors';
-	import type { MobileApp, ConfigurationPolicy } from '$lib/types/graph';
-	import type { DeviceCompliancePolicy } from '$lib/types/compliance';
-	import type { WindowsUpdateForBusinessConfiguration } from '$lib/types/updates';
-	import type { DeviceHealthScript } from '$lib/types/remediation';
-	import type { DeviceManagementScript } from '$lib/types/scripts';
+	import SearchInput from '#lib/components/ui/SearchInput.svelte';
+	import MultiSelectFilter from '#lib/components/ui/MultiSelectFilter.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import ErrorState from '#lib/components/ui/ErrorState.svelte';
+	import Tabs from '#lib/components/ui/Tabs.svelte';
+	import { getAppTypeInfo } from '#lib/utils/app-types';
+	import { getProfileTypeInfo } from '#lib/utils/profile-types';
+	import { getCompliancePlatformInfo } from '#lib/utils/compliance-types';
+	import { getSecurityCategoryInfo } from '#lib/utils/security-types';
+	import { getGraphClient } from '#lib/stores/graph';
+	import { listApps, getApp } from '#lib/graph/apps';
+	import { listConfigPolicies, getConfigPolicy } from '#lib/graph/configurations';
+	import { listCompliancePolicies, getCompliancePolicy } from '#lib/graph/compliance';
+	import { listSecurityPolicies } from '#lib/graph/security';
+	import { listUpdateRings } from '#lib/graph/updates';
+	import { listRemediationScripts } from '#lib/graph/remediations';
+	import { listScripts } from '#lib/graph/scripts';
+	import { toFriendlyMessage } from '#lib/graph/errors';
+	import type { MobileApp, ConfigurationPolicy } from '#lib/types/graph';
+	import type { DeviceCompliancePolicy } from '#lib/types/compliance';
+	import type { WindowsUpdateForBusinessConfiguration } from '#lib/types/updates';
+	import type { DeviceHealthScript } from '#lib/types/remediation';
+	import type { DeviceManagementScript } from '#lib/types/scripts';
 	import {
 		APP_PLATFORM_OPTIONS,
 		PROFILE_PLATFORM_OPTIONS,
@@ -37,7 +37,7 @@
 		filterCompliancePolicies,
 		filterSecurityPolicies,
 		type AssignmentStatus
-	} from '$lib/utils/filters';
+	} from '#lib/utils/filters';
 
 	interface Props {
 		selectedApps: MobileApp[];
@@ -567,7 +567,7 @@
 				}
 			} else {
 				try {
-					const { getConfigPolicy } = await import('$lib/graph/configurations');
+					const { getConfigPolicy } = await import('#lib/graph/configurations');
 					const policy = await getConfigPolicy(client, preselectedSecurityPolicyId);
 					if (!isSecuritySelected(policy.id)) {
 						onUpdateSecurityPolicies([...selectedSecurityPolicies, policy]);

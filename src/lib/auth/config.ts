@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import type { Configuration } from '@azure/msal-browser';
-import { PUBLIC_ENTRA_CLIENT_ID } from '$env/static/public';
+import { PUBLIC_ENTRA_CLIENT_ID } from '$app/env/public';
 
 // ─── Tiered Scope Definitions ───────────────────────────────────────
 

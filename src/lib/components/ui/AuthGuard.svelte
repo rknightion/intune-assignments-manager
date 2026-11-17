@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { auth, login } from '$lib/stores/auth.svelte';
+	import { auth, login } from '#lib/stores/auth.svelte';
 	import Skeleton from './Skeleton.svelte';
 	import Button from './Button.svelte';
 	import { LogIn } from 'lucide-svelte';

@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { CheckCircle, XCircle, AlertTriangle, RotateCcw, Plus } from 'lucide-svelte';
-	import Spinner from '$lib/components/ui/Spinner.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import type { AssignmentResult, BulkProgress } from '$lib/types/wizard';
+	import Spinner from '#lib/components/ui/Spinner.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import type { AssignmentResult, BulkProgress } from '#lib/types/wizard';
 
 	interface Props {
 		progress: BulkProgress | null;

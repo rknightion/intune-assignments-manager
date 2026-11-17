@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import type { IconComponent } from '$lib/types/ui';
+	import type { IconComponent } from '#lib/types/ui';
 	import { goto } from '$app/navigation';
 	import {
 		LayoutDashboard,
@@ -13,9 +13,9 @@
 		LogOut,
 		Search
 	} from 'lucide-svelte';
-	import { commandPalette } from '$lib/stores/command-palette.svelte';
-	import { setTheme } from '$lib/stores/theme.svelte';
-	import { logout } from '$lib/stores/auth.svelte';
+	import { commandPalette } from '#lib/stores/command-palette.svelte';
+	import { setTheme } from '#lib/stores/theme.svelte';
+	import { logout } from '#lib/stores/auth.svelte';
 	import Kbd from './Kbd.svelte';
 
 	let inputEl = $state<HTMLInputElement>();

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { DEVICE_ACTIONS } from '$lib/utils/device-types';
-import type { DeviceAction, DeviceActionInfo } from '$lib/types/device';
+import { DEVICE_ACTIONS } from '#lib/utils/device-types';
+import type { DeviceAction, DeviceActionInfo } from '#lib/types/device';
 
 export { DEVICE_ACTIONS };
 

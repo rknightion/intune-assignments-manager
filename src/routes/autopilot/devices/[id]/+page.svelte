@@ -1,18 +1,18 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { page } from '$app/state';
-	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
-	import PermissionGuard from '$lib/components/ui/PermissionGuard.svelte';
-	import Skeleton from '$lib/components/ui/Skeleton.svelte';
-	import ErrorState from '$lib/components/ui/ErrorState.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
+	import AuthGuard from '#lib/components/ui/AuthGuard.svelte';
+	import PermissionGuard from '#lib/components/ui/PermissionGuard.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import ErrorState from '#lib/components/ui/ErrorState.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
 	import { Laptop, Save, ArrowLeft } from 'lucide-svelte';
-	import { TIER_4_SCOPES } from '$lib/auth/config';
-	import { getGraphClient } from '$lib/stores/graph';
-	import { getAutopilotDevice, updateAutopilotDeviceProperties } from '$lib/graph/autopilot';
-	import { toFriendlyMessage } from '$lib/graph/errors';
-	import type { AutopilotDevice } from '$lib/types/autopilot';
+	import { TIER_4_SCOPES } from '#lib/auth/config';
+	import { getGraphClient } from '#lib/stores/graph';
+	import { getAutopilotDevice, updateAutopilotDeviceProperties } from '#lib/graph/autopilot';
+	import { toFriendlyMessage } from '#lib/graph/errors';
+	import type { AutopilotDevice } from '#lib/types/autopilot';
 
 	let device = $state<AutopilotDevice | null>(null);
 	let loading = $state(false);

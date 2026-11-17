@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import Toast from './Toast.svelte';
-	import { notifications, dismiss } from '$lib/stores/notifications.svelte';
+	import { notifications, dismiss } from '#lib/stores/notifications.svelte';
 </script>
 
 <div

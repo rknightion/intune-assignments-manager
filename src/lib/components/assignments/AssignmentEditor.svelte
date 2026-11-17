@@ -1,21 +1,21 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import Button from '$lib/components/ui/Button.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import SearchInput from '$lib/components/ui/SearchInput.svelte';
-	import Spinner from '$lib/components/ui/Spinner.svelte';
-	import Toggle from '$lib/components/ui/Toggle.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
+	import SearchInput from '#lib/components/ui/SearchInput.svelte';
+	import Spinner from '#lib/components/ui/Spinner.svelte';
+	import Toggle from '#lib/components/ui/Toggle.svelte';
 	import { Monitor, Users, UsersRound } from 'lucide-svelte';
-	import { getGraphClient } from '$lib/stores/graph';
-	import { searchGroups } from '$lib/graph/groups';
-	import { ensureFiltersLoaded } from '$lib/stores/filter-cache';
-	import { toFriendlyMessage } from '$lib/graph/errors';
+	import { getGraphClient } from '#lib/stores/graph';
+	import { searchGroups } from '#lib/graph/groups';
+	import { ensureFiltersLoaded } from '#lib/stores/filter-cache';
+	import { toFriendlyMessage } from '#lib/graph/errors';
 	import type {
 		AssignmentIntent,
 		AssignmentTarget,
 		AssignmentFilter,
 		Group
-	} from '$lib/types/graph';
+	} from '#lib/types/graph';
 
 	type TargetKind = 'allDevices' | 'allUsers' | 'group';
 

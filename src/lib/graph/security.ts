@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import type { GraphClient } from './client';
-import type { ConfigurationPolicy } from '$lib/types/graph';
-import type { EndpointSecurityCategory } from '$lib/types/security';
-import type { PolicySettingInstance } from '$lib/types/security';
-import { configurationPolicySchema } from '$lib/types/schemas';
-import { SECURITY_CATEGORIES, SECURITY_TEMPLATE_FAMILIES } from '$lib/utils/security-types';
+import type { ConfigurationPolicy } from '#lib/types/graph';
+import type { EndpointSecurityCategory } from '#lib/types/security';
+import type { PolicySettingInstance } from '#lib/types/security';
+import { configurationPolicySchema } from '#lib/types/schemas';
+import { SECURITY_CATEGORIES, SECURITY_TEMPLATE_FAMILIES } from '#lib/utils/security-types';
 
 // Re-export existing functions that work for security policies too
 export { getConfigPolicy, getConfigAssignments, assignConfigPolicy } from './configurations';

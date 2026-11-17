@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import type { DeviceCompliancePolicy } from '$lib/types/compliance';
-	import { getCompliancePlatformInfo } from '$lib/utils/compliance-types';
+	import type { DeviceCompliancePolicy } from '#lib/types/compliance';
+	import { getCompliancePlatformInfo } from '#lib/utils/compliance-types';
 	import Badge from './Badge.svelte';
 	import { ChevronRight } from 'lucide-svelte';
 

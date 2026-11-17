@@ -3,24 +3,24 @@
 	import { fly } from 'svelte/transition';
 	import { Upload, ArrowRight } from 'lucide-svelte';
 	import { page } from '$app/state';
-	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import Stepper from '$lib/components/ui/Stepper.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
-	import StepSelectItems from '$lib/components/assignments/StepSelectItems.svelte';
-	import StepSelectGroups from '$lib/components/assignments/StepSelectGroups.svelte';
-	import StepConfigure from '$lib/components/assignments/StepConfigure.svelte';
-	import StepReview from '$lib/components/assignments/StepReview.svelte';
-	import StepResults from '$lib/components/assignments/StepResults.svelte';
-	import CsvImportDialog from '$lib/components/csv/CsvImportDialog.svelte';
-	import { getGraphClient } from '$lib/stores/graph';
-	import { toFriendlyMessage } from '$lib/graph/errors';
-	import { getApp } from '$lib/graph/apps';
-	import { getConfigPolicy } from '$lib/graph/configurations';
-	import { notifySuccess, notifyWarning, notifyError } from '$lib/stores/notifications.svelte';
-	import { executeBulkAssignment } from '$lib/graph/execute';
-	import type { ValidatedImportRow } from '$lib/utils/csv-assignments';
+	import AuthGuard from '#lib/components/ui/AuthGuard.svelte';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
+	import Stepper from '#lib/components/ui/Stepper.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import ConfirmDialog from '#lib/components/ui/ConfirmDialog.svelte';
+	import StepSelectItems from '#lib/components/assignments/StepSelectItems.svelte';
+	import StepSelectGroups from '#lib/components/assignments/StepSelectGroups.svelte';
+	import StepConfigure from '#lib/components/assignments/StepConfigure.svelte';
+	import StepReview from '#lib/components/assignments/StepReview.svelte';
+	import StepResults from '#lib/components/assignments/StepResults.svelte';
+	import CsvImportDialog from '#lib/components/csv/CsvImportDialog.svelte';
+	import { getGraphClient } from '#lib/stores/graph';
+	import { toFriendlyMessage } from '#lib/graph/errors';
+	import { getApp } from '#lib/graph/apps';
+	import { getConfigPolicy } from '#lib/graph/configurations';
+	import { notifySuccess, notifyWarning, notifyError } from '#lib/stores/notifications.svelte';
+	import { executeBulkAssignment } from '#lib/graph/execute';
+	import type { ValidatedImportRow } from '#lib/utils/csv-assignments';
 	import {
 		WIZARD_STEPS,
 		createDefaultWizardState,
@@ -32,13 +32,13 @@
 		type AssignmentResult,
 		type BulkProgress,
 		type ConflictChoice
-	} from '$lib/types/wizard';
-	import type { MobileApp, ConfigurationPolicy, AssignmentIntent } from '$lib/types/graph';
-	import type { DeviceCompliancePolicy } from '$lib/types/compliance';
-	import type { WindowsUpdateForBusinessConfiguration } from '$lib/types/updates';
-	import type { DeviceHealthScript } from '$lib/types/remediation';
-	import type { DeviceManagementScript } from '$lib/types/scripts';
-	import { getCompliancePolicy } from '$lib/graph/compliance';
+	} from '#lib/types/wizard';
+	import type { MobileApp, ConfigurationPolicy, AssignmentIntent } from '#lib/types/graph';
+	import type { DeviceCompliancePolicy } from '#lib/types/compliance';
+	import type { WindowsUpdateForBusinessConfiguration } from '#lib/types/updates';
+	import type { DeviceHealthScript } from '#lib/types/remediation';
+	import type { DeviceManagementScript } from '#lib/types/scripts';
+	import { getCompliancePolicy } from '#lib/graph/compliance';
 
 	// ─── CSV Import ───────────────────────────────────────────────
 	let importDialogOpen = $state(false);

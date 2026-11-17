@@ -9,9 +9,9 @@ import type {
 	ExclusionGroupAssignmentTarget,
 	GroupAssignmentTarget,
 	MobileAppAssignment
-} from '$lib/types/graph';
-import type { ConflictChoice, FilterConfig, GroupTarget } from '$lib/types/wizard';
-import type { DeviceCompliancePolicyAssignment } from '$lib/types/compliance';
+} from '#lib/types/graph';
+import type { ConflictChoice, FilterConfig, GroupTarget } from '#lib/types/wizard';
+import type { DeviceCompliancePolicyAssignment } from '#lib/types/compliance';
 
 // ─── Merge Parameter Types ─────────────────────────────────────────
 

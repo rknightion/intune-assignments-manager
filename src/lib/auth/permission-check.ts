@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { browser } from '$app/environment';
-import { auth, getTokenWithScopes } from '$lib/stores/auth.svelte';
+import { browser } from '$app/env';
+import { auth, getTokenWithScopes } from '#lib/stores/auth.svelte';
 
 /**
  * Check if a specific scope has been consented to.

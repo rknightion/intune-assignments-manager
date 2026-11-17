@@ -1,12 +1,12 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import StatCard from '$lib/components/ui/StatCard.svelte';
-	import Skeleton from '$lib/components/ui/Skeleton.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import ErrorState from '$lib/components/ui/ErrorState.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
+	import AuthGuard from '#lib/components/ui/AuthGuard.svelte';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
+	import StatCard from '#lib/components/ui/StatCard.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import ErrorState from '#lib/components/ui/ErrorState.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
 	import {
 		Activity,
 		AppWindow,
@@ -15,14 +15,14 @@
 		CheckCircle,
 		ArrowRight
 	} from 'lucide-svelte';
-	import { getGraphClient } from '$lib/stores/graph';
-	import { listApps } from '$lib/graph/apps';
-	import { listConfigPolicies } from '$lib/graph/configurations';
-	import { getAppInstallSummaries } from '$lib/graph/status';
-	import { toFriendlyMessage } from '$lib/graph/errors';
-	import { deviceConfigurationDeviceOverviewSchema } from '$lib/types/status-schemas';
-	import type { MobileApp, ConfigurationPolicy, BatchRequestItem } from '$lib/types/graph';
-	import type { AppInstallSummaryRow, DeviceConfigurationDeviceOverview } from '$lib/types/status';
+	import { getGraphClient } from '#lib/stores/graph';
+	import { listApps } from '#lib/graph/apps';
+	import { listConfigPolicies } from '#lib/graph/configurations';
+	import { getAppInstallSummaries } from '#lib/graph/status';
+	import { toFriendlyMessage } from '#lib/graph/errors';
+	import { deviceConfigurationDeviceOverviewSchema } from '#lib/types/status-schemas';
+	import type { MobileApp, ConfigurationPolicy, BatchRequestItem } from '#lib/types/graph';
+	import type { AppInstallSummaryRow, DeviceConfigurationDeviceOverview } from '#lib/types/status';
 
 	interface AppWithFailures {
 		app: MobileApp;

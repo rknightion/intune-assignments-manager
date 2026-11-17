@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import Button from '$lib/components/ui/Button.svelte';
-	import { getActionInfo } from '$lib/utils/device-actions';
-	import { executeBulkDeviceActions } from '$lib/graph/device-actions';
-	import { getGraphClient } from '$lib/stores/graph';
-	import type { DeviceAction, BulkActionProgress } from '$lib/types/device';
+	import Button from '#lib/components/ui/Button.svelte';
+	import { getActionInfo } from '#lib/utils/device-actions';
+	import { executeBulkDeviceActions } from '#lib/graph/device-actions';
+	import { getGraphClient } from '#lib/stores/graph';
+	import type { DeviceAction, BulkActionProgress } from '#lib/types/device';
 	import {
 		RefreshCw,
 		RotateCcw,

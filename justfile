@@ -1,6 +1,6 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
-# Placeholder Entra client ID — $env/static/public needs a value to resolve at
+# Placeholder Entra client ID — $app/env/public needs a value to resolve at
 # type-check/build time. The real value is per-deployment Cloudflare Pages
 # config; this app is client-side only with no server secrets. Override with a
 # real value via `.env` (loaded by Vite) for `just dev`.

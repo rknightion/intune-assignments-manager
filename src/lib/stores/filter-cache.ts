@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import type { GraphClient } from '$lib/graph/client';
-import type { AssignmentFilter } from '$lib/types/graph';
-import { listAssignmentFilters } from '$lib/graph/filters';
+import type { GraphClient } from '#lib/graph/client';
+import type { AssignmentFilter } from '#lib/types/graph';
+import { listAssignmentFilters } from '#lib/graph/filters';
 
 let filters: AssignmentFilter[] | null = null;
 let filterMap: Map<string, AssignmentFilter> | null = null;

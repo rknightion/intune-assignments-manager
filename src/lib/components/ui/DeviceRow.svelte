@@ -1,12 +1,12 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import type { ManagedDevice } from '$lib/types/device';
+	import type { ManagedDevice } from '#lib/types/device';
 	import {
 		getDeviceTypeInfo,
 		getComplianceInfo,
 		getOwnershipLabel,
 		formatRelativeTime
-	} from '$lib/utils/device-types';
+	} from '#lib/utils/device-types';
 	import Badge from './Badge.svelte';
 	import { ChevronRight } from 'lucide-svelte';
 

@@ -1,35 +1,35 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { page } from '$app/state';
-	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
-	import Skeleton from '$lib/components/ui/Skeleton.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import ErrorState from '$lib/components/ui/ErrorState.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import Tabs from '$lib/components/ui/Tabs.svelte';
-	import AssignmentRow from '$lib/components/assignments/AssignmentRow.svelte';
-	import AssignmentEditor from '$lib/components/assignments/AssignmentEditor.svelte';
-	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
-	import CsvExportButton from '$lib/components/csv/CsvExportButton.svelte';
+	import AuthGuard from '#lib/components/ui/AuthGuard.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import ErrorState from '#lib/components/ui/ErrorState.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
+	import Tabs from '#lib/components/ui/Tabs.svelte';
+	import AssignmentRow from '#lib/components/assignments/AssignmentRow.svelte';
+	import AssignmentEditor from '#lib/components/assignments/AssignmentEditor.svelte';
+	import ConfirmDialog from '#lib/components/ui/ConfirmDialog.svelte';
+	import CsvExportButton from '#lib/components/csv/CsvExportButton.svelte';
 	import { Layers, Plus, Swords, Monitor } from 'lucide-svelte';
-	import { getGraphClient } from '$lib/stores/graph';
+	import { getGraphClient } from '#lib/stores/graph';
 	import {
 		getConfigPolicy,
 		getConfigAssignments,
 		assignConfigPolicy,
 		getSecurityPolicySettings
-	} from '$lib/graph/security';
-	import { getTargetKey } from '$lib/graph/merge';
-	import { resolveGroupNames } from '$lib/stores/group-cache';
-	import { ensureFiltersLoaded, getFilterById } from '$lib/stores/filter-cache';
-	import { toFriendlyMessage } from '$lib/graph/errors';
-	import { getSecurityCategoryInfo } from '$lib/utils/security-types';
-	import { getPlatformLabel } from '$lib/utils/profile-types';
-	import { exportAssignmentsCsv, type ExportableAssignment } from '$lib/utils/csv-assignments';
-	import type { ConfigurationPolicy, ConfigurationPolicyAssignment } from '$lib/types/graph';
-	import type { AssignmentTarget, AssignmentIntent } from '$lib/types/graph';
-	import type { PolicySettingInstance } from '$lib/types/security';
+	} from '#lib/graph/security';
+	import { getTargetKey } from '#lib/graph/merge';
+	import { resolveGroupNames } from '#lib/stores/group-cache';
+	import { ensureFiltersLoaded, getFilterById } from '#lib/stores/filter-cache';
+	import { toFriendlyMessage } from '#lib/graph/errors';
+	import { getSecurityCategoryInfo } from '#lib/utils/security-types';
+	import { getPlatformLabel } from '#lib/utils/profile-types';
+	import { exportAssignmentsCsv, type ExportableAssignment } from '#lib/utils/csv-assignments';
+	import type { ConfigurationPolicy, ConfigurationPolicyAssignment } from '#lib/types/graph';
+	import type { AssignmentTarget, AssignmentIntent } from '#lib/types/graph';
+	import type { PolicySettingInstance } from '#lib/types/security';
 
 	let policy = $state<ConfigurationPolicy | null>(null);
 	let assignments = $state<ConfigurationPolicyAssignment[]>([]);

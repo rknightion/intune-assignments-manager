@@ -1,16 +1,16 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { Upload, FileText, CheckCircle, XCircle, AlertTriangle } from 'lucide-svelte';
-	import Spinner from '$lib/components/ui/Spinner.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import { parseCsv } from '$lib/utils/csv';
+	import Spinner from '#lib/components/ui/Spinner.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import { parseCsv } from '#lib/utils/csv';
 	import {
 		parseAssignmentRows,
 		validateImportRows,
 		type ValidatedImportRow,
 		type ImportRowError
-	} from '$lib/utils/csv-assignments';
-	import { getGraphClient } from '$lib/stores/graph';
+	} from '#lib/utils/csv-assignments';
+	import { getGraphClient } from '#lib/stores/graph';
 
 	interface Props {
 		open: boolean;

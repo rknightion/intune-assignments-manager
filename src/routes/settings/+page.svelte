@@ -1,17 +1,17 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
+	import AuthGuard from '#lib/components/ui/AuthGuard.svelte';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
 	import { ShieldCheck, Check, Lock } from 'lucide-svelte';
-	import { PERMISSION_TIERS, SCOPE_DESCRIPTIONS } from '$lib/auth/permissions';
+	import { PERMISSION_TIERS, SCOPE_DESCRIPTIONS } from '#lib/auth/permissions';
 	import {
 		hasAllPermissions,
 		ensurePermissions,
 		permissions,
 		clearConsentError
-	} from '$lib/stores/permissions.svelte';
+	} from '#lib/stores/permissions.svelte';
 
 	let grantingTierId = $state<number | null>(null);
 

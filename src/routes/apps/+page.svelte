@@ -1,28 +1,28 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { fly } from 'svelte/transition';
-	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import SearchInput from '$lib/components/ui/SearchInput.svelte';
-	import Skeleton from '$lib/components/ui/Skeleton.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import ErrorState from '$lib/components/ui/ErrorState.svelte';
-	import DropdownMenu from '$lib/components/ui/DropdownMenu.svelte';
-	import AppRow from '$lib/components/ui/AppRow.svelte';
-	import MultiSelectFilter from '$lib/components/ui/MultiSelectFilter.svelte';
+	import AuthGuard from '#lib/components/ui/AuthGuard.svelte';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
+	import SearchInput from '#lib/components/ui/SearchInput.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import ErrorState from '#lib/components/ui/ErrorState.svelte';
+	import DropdownMenu from '#lib/components/ui/DropdownMenu.svelte';
+	import AppRow from '#lib/components/ui/AppRow.svelte';
+	import MultiSelectFilter from '#lib/components/ui/MultiSelectFilter.svelte';
 	import { Search, AppWindow, ArrowDownAZ, ArrowUpZA, SlidersHorizontal } from 'lucide-svelte';
-	import { getGraphClient } from '$lib/stores/graph';
-	import { dashboardCache } from '$lib/stores/dashboard-cache.svelte';
-	import type { MobileApp } from '$lib/types/graph';
-	import { listApps } from '$lib/graph/apps';
-	import { toFriendlyMessage } from '$lib/graph/errors';
+	import { getGraphClient } from '#lib/stores/graph';
+	import { dashboardCache } from '#lib/stores/dashboard-cache.svelte';
+	import type { MobileApp } from '#lib/types/graph';
+	import { listApps } from '#lib/graph/apps';
+	import { toFriendlyMessage } from '#lib/graph/errors';
 	import {
 		APP_PLATFORM_OPTIONS,
 		deriveAppTypeOptions,
 		filterApps,
 		hasActiveAppFilters,
 		type AssignmentStatus
-	} from '$lib/utils/filters';
+	} from '#lib/utils/filters';
 
 	let apps = $state<MobileApp[]>([]);
 	let search = $state('');

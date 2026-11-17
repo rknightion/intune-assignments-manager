@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import type { GraphClient } from './client';
-import type { GraphPagedResponse } from '$lib/types/graph';
+import type { GraphPagedResponse } from '#lib/types/graph';
 import type {
 	DeviceManagementScript,
 	DeviceManagementScriptAssignment,
 	DeviceManagementScriptDeviceState,
 	DeviceManagementScriptRunSummary
-} from '$lib/types/scripts';
+} from '#lib/types/scripts';
 import {
 	deviceManagementScriptSchema,
 	deviceManagementScriptAssignmentSchema,
 	deviceManagementScriptDeviceStateSchema,
 	deviceManagementScriptRunSummarySchema
-} from '$lib/types/script-schemas';
+} from '#lib/types/script-schemas';
 
 // ─── API Functions ──────────────────────────────────────────────────
 

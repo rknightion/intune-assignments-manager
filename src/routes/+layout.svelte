@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import { page } from '$app/state';
 	import { onNavigate } from '$app/navigation';
 	import {
@@ -25,15 +25,15 @@
 		GitCompare,
 		BarChart3
 	} from 'lucide-svelte';
-	import favicon from '$lib/assets/favicon.svg';
-	import { auth, initAuth, login, logout } from '$lib/stores/auth.svelte';
-	import { initTheme } from '$lib/stores/theme.svelte';
-	import { handleGlobalKeydown, shortcuts } from '$lib/stores/shortcuts.svelte';
-	import ToastContainer from '$lib/components/ui/ToastContainer.svelte';
-	import TopBar from '$lib/components/ui/TopBar.svelte';
-	import Avatar from '$lib/components/ui/Avatar.svelte';
-	import CommandPalette from '$lib/components/ui/CommandPalette.svelte';
-	import ShortcutsDialog from '$lib/components/ui/ShortcutsDialog.svelte';
+	import favicon from '#lib/assets/favicon.svg';
+	import { auth, initAuth, login, logout } from '#lib/stores/auth.svelte';
+	import { initTheme } from '#lib/stores/theme.svelte';
+	import { handleGlobalKeydown, shortcuts } from '#lib/stores/shortcuts.svelte';
+	import ToastContainer from '#lib/components/ui/ToastContainer.svelte';
+	import TopBar from '#lib/components/ui/TopBar.svelte';
+	import Avatar from '#lib/components/ui/Avatar.svelte';
+	import CommandPalette from '#lib/components/ui/CommandPalette.svelte';
+	import ShortcutsDialog from '#lib/components/ui/ShortcutsDialog.svelte';
 	import '../app.css';
 
 	let { children } = $props();

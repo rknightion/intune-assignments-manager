@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { Equal, ArrowLeftRight, Plus, Minus } from 'lucide-svelte';
-	import type { ComparisonSummary, ComparisonStatus } from '$lib/types/compare';
+	import type { ComparisonSummary, ComparisonStatus } from '#lib/types/compare';
 
 	interface Props {
 		summary: ComparisonSummary;

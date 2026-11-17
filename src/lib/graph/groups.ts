@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import type { GraphClient } from './client';
-import type { Group, GraphPagedResponse } from '$lib/types/graph';
-import { groupSchema } from '$lib/types/schemas';
+import type { Group, GraphPagedResponse } from '#lib/types/graph';
+import { groupSchema } from '#lib/types/schemas';
 
 // ─── Types ──────────────────────────────────────────────────────────
 

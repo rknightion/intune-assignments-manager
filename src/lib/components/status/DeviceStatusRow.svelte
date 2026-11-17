@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import Badge from '$lib/components/ui/Badge.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
 
 	interface Props {
 		deviceName: string;

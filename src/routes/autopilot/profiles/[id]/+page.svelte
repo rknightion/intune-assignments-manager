@@ -1,34 +1,34 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { page } from '$app/state';
-	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
-	import PermissionGuard from '$lib/components/ui/PermissionGuard.svelte';
-	import Skeleton from '$lib/components/ui/Skeleton.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import ErrorState from '$lib/components/ui/ErrorState.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import Tabs from '$lib/components/ui/Tabs.svelte';
-	import AssignmentRow from '$lib/components/assignments/AssignmentRow.svelte';
-	import AssignmentEditor from '$lib/components/assignments/AssignmentEditor.svelte';
-	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
+	import AuthGuard from '#lib/components/ui/AuthGuard.svelte';
+	import PermissionGuard from '#lib/components/ui/PermissionGuard.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import ErrorState from '#lib/components/ui/ErrorState.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
+	import Tabs from '#lib/components/ui/Tabs.svelte';
+	import AssignmentRow from '#lib/components/assignments/AssignmentRow.svelte';
+	import AssignmentEditor from '#lib/components/assignments/AssignmentEditor.svelte';
+	import ConfirmDialog from '#lib/components/ui/ConfirmDialog.svelte';
 	import { FileStack, Plus, ArrowLeft, Check, X as XIcon } from 'lucide-svelte';
-	import { TIER_4_SCOPES } from '$lib/auth/config';
-	import { getGraphClient } from '$lib/stores/graph';
+	import { TIER_4_SCOPES } from '#lib/auth/config';
+	import { getGraphClient } from '#lib/stores/graph';
 	import {
 		getDeploymentProfile,
 		getDeploymentProfileAssignments,
 		assignDeploymentProfile
-	} from '$lib/graph/autopilot';
-	import { getTargetKey } from '$lib/graph/merge';
-	import { resolveGroupNames } from '$lib/stores/group-cache';
-	import { ensureFiltersLoaded, getFilterById } from '$lib/stores/filter-cache';
-	import { toFriendlyMessage } from '$lib/graph/errors';
+	} from '#lib/graph/autopilot';
+	import { getTargetKey } from '#lib/graph/merge';
+	import { resolveGroupNames } from '#lib/stores/group-cache';
+	import { ensureFiltersLoaded, getFilterById } from '#lib/stores/filter-cache';
+	import { toFriendlyMessage } from '#lib/graph/errors';
 	import type {
 		AutopilotDeploymentProfile,
 		AutopilotDeploymentProfileAssignment
-	} from '$lib/types/autopilot';
-	import type { AssignmentTarget, AssignmentIntent } from '$lib/types/graph';
+	} from '#lib/types/autopilot';
+	import type { AssignmentTarget, AssignmentIntent } from '#lib/types/graph';
 
 	let profile = $state<AutopilotDeploymentProfile | null>(null);
 	let assignments = $state<AutopilotDeploymentProfileAssignment[]>([]);

@@ -5,10 +5,10 @@ import type {
 	AssignmentTarget,
 	MobileAppAssignment,
 	ConfigurationPolicyAssignment
-} from '$lib/types/graph';
-import type { GroupTarget, FilterConfig } from '$lib/types/wizard';
-import type { AssignmentDiffResult, ItemDiff, DiffEntry, DiffStatus } from '$lib/types/diff';
-import { getTargetKey, buildAssignmentTarget, buildExclusionTarget } from '$lib/graph/merge';
+} from '#lib/types/graph';
+import type { GroupTarget, FilterConfig } from '#lib/types/wizard';
+import type { AssignmentDiffResult, ItemDiff, DiffEntry, DiffStatus } from '#lib/types/diff';
+import { getTargetKey, buildAssignmentTarget, buildExclusionTarget } from '#lib/graph/merge';
 
 export interface DiffItemParams {
 	itemId: string;
