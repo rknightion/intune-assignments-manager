@@ -1,21 +1,21 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { slide } from 'svelte/transition';
-	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import SearchInput from '$lib/components/ui/SearchInput.svelte';
-	import Skeleton from '$lib/components/ui/Skeleton.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import ErrorState from '$lib/components/ui/ErrorState.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import MultiSelectFilter from '$lib/components/ui/MultiSelectFilter.svelte';
+	import AuthGuard from '#lib/components/ui/AuthGuard.svelte';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
+	import SearchInput from '#lib/components/ui/SearchInput.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import ErrorState from '#lib/components/ui/ErrorState.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
+	import MultiSelectFilter from '#lib/components/ui/MultiSelectFilter.svelte';
 	import { Search, ClipboardList, ChevronDown, ChevronRight, RefreshCw } from 'lucide-svelte';
-	import { getGraphClient } from '$lib/stores/graph';
-	import { toFriendlyMessage } from '$lib/graph/errors';
-	import { listAuditEvents, fetchAuditNextPage, buildAuditFilter } from '$lib/graph/audit';
-	import type { AuditEvent } from '$lib/types/graph';
-	import { AUDIT_CATEGORY_OPTIONS, AUDIT_RESULT_OPTIONS } from '$lib/utils/filters';
+	import { getGraphClient } from '#lib/stores/graph';
+	import { toFriendlyMessage } from '#lib/graph/errors';
+	import { listAuditEvents, fetchAuditNextPage, buildAuditFilter } from '#lib/graph/audit';
+	import type { AuditEvent } from '#lib/types/graph';
+	import { AUDIT_CATEGORY_OPTIONS, AUDIT_RESULT_OPTIONS } from '#lib/utils/filters';
 
 	let events = $state<AuditEvent[]>([]);
 	let nextLink = $state<string | null>(null);

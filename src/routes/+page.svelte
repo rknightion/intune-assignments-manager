@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import StatCard from '$lib/components/ui/StatCard.svelte';
-	import Skeleton from '$lib/components/ui/Skeleton.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
+	import { browser } from '$app/env';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
+	import StatCard from '#lib/components/ui/StatCard.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
 	import {
 		AppWindow,
 		Settings,
@@ -16,14 +16,14 @@
 		Upload,
 		RefreshCw
 	} from 'lucide-svelte';
-	import { auth } from '$lib/stores/auth.svelte';
-	import { getGraphClient } from '$lib/stores/graph';
-	import { dashboardCache } from '$lib/stores/dashboard-cache.svelte';
-	import { toFriendlyMessage } from '$lib/graph/errors';
-	import { listAuditEvents, buildAssignmentFilter } from '$lib/graph/audit';
-	import { listCompliancePolicies } from '$lib/graph/compliance';
-	import { listSecurityPolicies } from '$lib/graph/security';
-	import type { MobileApp, ConfigurationPolicy } from '$lib/types/graph';
+	import { auth } from '#lib/stores/auth.svelte';
+	import { getGraphClient } from '#lib/stores/graph';
+	import { dashboardCache } from '#lib/stores/dashboard-cache.svelte';
+	import { toFriendlyMessage } from '#lib/graph/errors';
+	import { listAuditEvents, buildAssignmentFilter } from '#lib/graph/audit';
+	import { listCompliancePolicies } from '#lib/graph/compliance';
+	import { listSecurityPolicies } from '#lib/graph/security';
+	import type { MobileApp, ConfigurationPolicy } from '#lib/types/graph';
 
 	// ─── Time-based Greeting ─────────────────────────────────────
 	const greeting = $derived.by(() => {

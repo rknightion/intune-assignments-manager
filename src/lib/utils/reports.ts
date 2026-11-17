@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import type { GraphClient } from '$lib/graph/client';
-import type { IntuneReportResponse } from '$lib/types/status';
+import type { GraphClient } from '#lib/graph/client';
+import type { IntuneReportResponse } from '#lib/types/status';
 import type {
 	AppDeploymentReportItem,
 	UnassignedItem,
@@ -9,12 +9,12 @@ import type {
 	FailedDeploymentItem,
 	AssignmentCoverageItem,
 	ReportConfig
-} from '$lib/types/reports';
-import type { BatchRequestItem } from '$lib/types/graph';
-import { listApps } from '$lib/graph/apps';
-import { listConfigPolicies } from '$lib/graph/configurations';
-import { listCompliancePolicies } from '$lib/graph/compliance';
-import { listSecurityPolicies } from '$lib/graph/security';
+} from '#lib/types/reports';
+import type { BatchRequestItem } from '#lib/types/graph';
+import { listApps } from '#lib/graph/apps';
+import { listConfigPolicies } from '#lib/graph/configurations';
+import { listCompliancePolicies } from '#lib/graph/compliance';
+import { listSecurityPolicies } from '#lib/graph/security';
 
 // ─── Report Configs ─────────────────────────────────────────────────
 

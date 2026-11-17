@@ -1,37 +1,37 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { page } from '$app/state';
-	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
-	import Skeleton from '$lib/components/ui/Skeleton.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import ErrorState from '$lib/components/ui/ErrorState.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import Tabs from '$lib/components/ui/Tabs.svelte';
-	import SearchInput from '$lib/components/ui/SearchInput.svelte';
-	import StatusSummaryCard from '$lib/components/status/StatusSummaryCard.svelte';
-	import DeviceStatusRow from '$lib/components/status/DeviceStatusRow.svelte';
-	import AssignmentRow from '$lib/components/assignments/AssignmentRow.svelte';
-	import AssignmentEditor from '$lib/components/assignments/AssignmentEditor.svelte';
-	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
-	import CsvExportButton from '$lib/components/csv/CsvExportButton.svelte';
+	import AuthGuard from '#lib/components/ui/AuthGuard.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import ErrorState from '#lib/components/ui/ErrorState.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
+	import Tabs from '#lib/components/ui/Tabs.svelte';
+	import SearchInput from '#lib/components/ui/SearchInput.svelte';
+	import StatusSummaryCard from '#lib/components/status/StatusSummaryCard.svelte';
+	import DeviceStatusRow from '#lib/components/status/DeviceStatusRow.svelte';
+	import AssignmentRow from '#lib/components/assignments/AssignmentRow.svelte';
+	import AssignmentEditor from '#lib/components/assignments/AssignmentEditor.svelte';
+	import ConfirmDialog from '#lib/components/ui/ConfirmDialog.svelte';
+	import CsvExportButton from '#lib/components/csv/CsvExportButton.svelte';
 	import { Layers, Monitor, Plus } from 'lucide-svelte';
-	import { getGraphClient } from '$lib/stores/graph';
-	import { getApp, getAppAssignments, assignApp } from '$lib/graph/apps';
-	import { getAppInstallSummary, getAppDeviceInstallStatuses } from '$lib/graph/status';
-	import { getTargetKey } from '$lib/graph/merge';
-	import { resolveGroupNames } from '$lib/stores/group-cache';
-	import { ensureFiltersLoaded, getFilterById } from '$lib/stores/filter-cache';
-	import { toFriendlyMessage } from '$lib/graph/errors';
-	import { getAppTypeInfo } from '$lib/utils/app-types';
-	import { exportAssignmentsCsv, type ExportableAssignment } from '$lib/utils/csv-assignments';
+	import { getGraphClient } from '#lib/stores/graph';
+	import { getApp, getAppAssignments, assignApp } from '#lib/graph/apps';
+	import { getAppInstallSummary, getAppDeviceInstallStatuses } from '#lib/graph/status';
+	import { getTargetKey } from '#lib/graph/merge';
+	import { resolveGroupNames } from '#lib/stores/group-cache';
+	import { ensureFiltersLoaded, getFilterById } from '#lib/stores/filter-cache';
+	import { toFriendlyMessage } from '#lib/graph/errors';
+	import { getAppTypeInfo } from '#lib/utils/app-types';
+	import { exportAssignmentsCsv, type ExportableAssignment } from '#lib/utils/csv-assignments';
 	import type {
 		MobileApp,
 		MobileAppAssignment,
 		AssignmentTarget,
 		AssignmentIntent
-	} from '$lib/types/graph';
-	import type { MobileAppInstallSummary, AppDeviceInstallStatusRow } from '$lib/types/status';
+	} from '#lib/types/graph';
+	import type { MobileAppInstallSummary, AppDeviceInstallStatusRow } from '#lib/types/status';
 
 	let app = $state<MobileApp | null>(null);
 	let assignments = $state<MobileAppAssignment[]>([]);

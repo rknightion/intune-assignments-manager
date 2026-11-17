@@ -1,14 +1,14 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import PermissionGuard from '$lib/components/ui/PermissionGuard.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
-	import { TIER_3_SCOPES } from '$lib/auth/config';
-	import { DEVICE_ACTIONS } from '$lib/utils/device-types';
-	import { executeDeviceAction } from '$lib/graph/devices';
-	import { getGraphClient } from '$lib/stores/graph';
-	import { notifySuccess, notifyError } from '$lib/stores/notifications.svelte';
-	import type { DeviceAction, DeviceActionInfo } from '$lib/types/device';
+	import PermissionGuard from '#lib/components/ui/PermissionGuard.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import ConfirmDialog from '#lib/components/ui/ConfirmDialog.svelte';
+	import { TIER_3_SCOPES } from '#lib/auth/config';
+	import { DEVICE_ACTIONS } from '#lib/utils/device-types';
+	import { executeDeviceAction } from '#lib/graph/devices';
+	import { getGraphClient } from '#lib/stores/graph';
+	import { notifySuccess, notifyError } from '#lib/stores/notifications.svelte';
+	import type { DeviceAction, DeviceActionInfo } from '#lib/types/device';
 	import {
 		RefreshCw,
 		RotateCcw,

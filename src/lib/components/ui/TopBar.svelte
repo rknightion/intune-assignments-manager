@@ -5,7 +5,7 @@
 	import ThemeToggle from './ThemeToggle.svelte';
 	import Kbd from './Kbd.svelte';
 	import Tooltip from './Tooltip.svelte';
-	import { commandPalette } from '$lib/stores/command-palette.svelte';
+	import { commandPalette } from '#lib/stores/command-palette.svelte';
 
 	const routeLabels: Record<string, string> = {
 		'/': 'Dashboard',

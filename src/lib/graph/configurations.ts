@@ -5,8 +5,8 @@ import type {
 	ConfigurationPolicy,
 	ConfigurationPolicyAssignment,
 	GraphPagedResponse
-} from '$lib/types/graph';
-import { configurationPolicySchema, configurationPolicyAssignmentSchema } from '$lib/types/schemas';
+} from '#lib/types/graph';
+import { configurationPolicySchema, configurationPolicyAssignmentSchema } from '#lib/types/schemas';
 
 // ─── Types ──────────────────────────────────────────────────────────
 

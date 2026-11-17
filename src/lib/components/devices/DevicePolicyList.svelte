@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import type { DeviceCompliancePolicyState, DeviceConfigurationState } from '$lib/types/device';
-	import { getPolicyStateInfo } from '$lib/utils/device-types';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import type { DeviceCompliancePolicyState, DeviceConfigurationState } from '#lib/types/device';
+	import { getPolicyStateInfo } from '#lib/utils/device-types';
+	import Badge from '#lib/components/ui/Badge.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { ChevronRight, ShieldCheck, Settings } from 'lucide-svelte';
 

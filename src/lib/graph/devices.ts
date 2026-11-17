@@ -8,14 +8,14 @@ import type {
 	DetectedApp,
 	DeviceDetail,
 	DeviceAction
-} from '$lib/types/device';
-import type { GraphPagedResponse, BatchRequestItem } from '$lib/types/graph';
+} from '#lib/types/device';
+import type { GraphPagedResponse, BatchRequestItem } from '#lib/types/graph';
 import {
 	managedDeviceSchema,
 	deviceCompliancePolicyStateSchema,
 	deviceConfigurationStateSchema,
 	detectedAppSchema
-} from '$lib/types/device-schemas';
+} from '#lib/types/device-schemas';
 
 // ─── Types ──────────────────────────────────────────────────────────
 

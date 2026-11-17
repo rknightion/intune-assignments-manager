@@ -1,21 +1,21 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { fly } from 'svelte/transition';
-	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
-	import PermissionGuard from '$lib/components/ui/PermissionGuard.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import SearchInput from '$lib/components/ui/SearchInput.svelte';
-	import Skeleton from '$lib/components/ui/Skeleton.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import ErrorState from '$lib/components/ui/ErrorState.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import Tabs from '$lib/components/ui/Tabs.svelte';
+	import AuthGuard from '#lib/components/ui/AuthGuard.svelte';
+	import PermissionGuard from '#lib/components/ui/PermissionGuard.svelte';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
+	import SearchInput from '#lib/components/ui/SearchInput.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import ErrorState from '#lib/components/ui/ErrorState.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
+	import Tabs from '#lib/components/ui/Tabs.svelte';
 	import { Search, Laptop, ChevronRight, FileStack, Check, X as XIcon } from 'lucide-svelte';
-	import { TIER_4_SCOPES } from '$lib/auth/config';
-	import { getGraphClient } from '$lib/stores/graph';
-	import { listAutopilotDevices, listDeploymentProfiles } from '$lib/graph/autopilot';
-	import { toFriendlyMessage } from '$lib/graph/errors';
-	import type { AutopilotDevice, AutopilotDeploymentProfile } from '$lib/types/autopilot';
+	import { TIER_4_SCOPES } from '#lib/auth/config';
+	import { getGraphClient } from '#lib/stores/graph';
+	import { listAutopilotDevices, listDeploymentProfiles } from '#lib/graph/autopilot';
+	import { toFriendlyMessage } from '#lib/graph/errors';
+	import type { AutopilotDevice, AutopilotDeploymentProfile } from '#lib/types/autopilot';
 
 	let activeTab = $state('devices');
 

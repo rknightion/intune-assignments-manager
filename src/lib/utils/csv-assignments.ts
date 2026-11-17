@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import type { AssignmentTarget } from '$lib/types/graph';
+import type { AssignmentTarget } from '#lib/types/graph';
 import type { CsvParseResult } from './csv';
-import type { GraphClient } from '$lib/graph/client';
-import { listApps } from '$lib/graph/apps';
-import { listConfigPolicies } from '$lib/graph/configurations';
-import { searchGroups } from '$lib/graph/groups';
-import { ensureFiltersLoaded } from '$lib/stores/filter-cache';
+import type { GraphClient } from '#lib/graph/client';
+import { listApps } from '#lib/graph/apps';
+import { listConfigPolicies } from '#lib/graph/configurations';
+import { searchGroups } from '#lib/graph/groups';
+import { ensureFiltersLoaded } from '#lib/stores/filter-cache';
 import { serializeCsv } from './csv';
 
 // ─── Constants ──────────────────────────────────────────────────────

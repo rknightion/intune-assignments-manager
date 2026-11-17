@@ -2,18 +2,18 @@
 <script lang="ts">
 	import { SvelteSet } from 'svelte/reactivity';
 	import { fly } from 'svelte/transition';
-	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
-	import PermissionGuard from '$lib/components/ui/PermissionGuard.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import SearchInput from '$lib/components/ui/SearchInput.svelte';
-	import Skeleton from '$lib/components/ui/Skeleton.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import ErrorState from '$lib/components/ui/ErrorState.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import DropdownMenu from '$lib/components/ui/DropdownMenu.svelte';
-	import DeviceRow from '$lib/components/ui/DeviceRow.svelte';
-	import MultiSelectFilter from '$lib/components/ui/MultiSelectFilter.svelte';
-	import BulkActionDialog from '$lib/components/devices/BulkActionDialog.svelte';
+	import AuthGuard from '#lib/components/ui/AuthGuard.svelte';
+	import PermissionGuard from '#lib/components/ui/PermissionGuard.svelte';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
+	import SearchInput from '#lib/components/ui/SearchInput.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import ErrorState from '#lib/components/ui/ErrorState.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import DropdownMenu from '#lib/components/ui/DropdownMenu.svelte';
+	import DeviceRow from '#lib/components/ui/DeviceRow.svelte';
+	import MultiSelectFilter from '#lib/components/ui/MultiSelectFilter.svelte';
+	import BulkActionDialog from '#lib/components/devices/BulkActionDialog.svelte';
 	import {
 		Search,
 		Monitor,
@@ -30,17 +30,17 @@
 		Trash2,
 		X
 	} from 'lucide-svelte';
-	import { getGraphClient } from '$lib/stores/graph';
-	import type { ManagedDevice, DeviceAction } from '$lib/types/device';
-	import { toFriendlyMessage } from '$lib/graph/errors';
-	import { listDevices, loadMoreDevices } from '$lib/graph/devices';
+	import { getGraphClient } from '#lib/stores/graph';
+	import type { ManagedDevice, DeviceAction } from '#lib/types/device';
+	import { toFriendlyMessage } from '#lib/graph/errors';
+	import { listDevices, loadMoreDevices } from '#lib/graph/devices';
 	import {
 		DEVICE_PLATFORM_OPTIONS,
 		DEVICE_COMPLIANCE_OPTIONS,
 		DEVICE_OWNERSHIP_OPTIONS,
 		filterDevices,
 		hasActiveDeviceFilters
-	} from '$lib/utils/filters';
+	} from '#lib/utils/filters';
 
 	const DEVICE_SELECT_FIELDS = [
 		'id',

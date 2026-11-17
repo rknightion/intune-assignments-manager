@@ -1,41 +1,41 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { page } from '$app/state';
-	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
-	import PermissionGuard from '$lib/components/ui/PermissionGuard.svelte';
-	import Skeleton from '$lib/components/ui/Skeleton.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import ErrorState from '$lib/components/ui/ErrorState.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import Tabs from '$lib/components/ui/Tabs.svelte';
-	import SearchInput from '$lib/components/ui/SearchInput.svelte';
-	import StatusSummaryCard from '$lib/components/status/StatusSummaryCard.svelte';
-	import DeviceStatusRow from '$lib/components/status/DeviceStatusRow.svelte';
-	import AssignmentRow from '$lib/components/assignments/AssignmentRow.svelte';
-	import AssignmentEditor from '$lib/components/assignments/AssignmentEditor.svelte';
-	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
+	import AuthGuard from '#lib/components/ui/AuthGuard.svelte';
+	import PermissionGuard from '#lib/components/ui/PermissionGuard.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import ErrorState from '#lib/components/ui/ErrorState.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
+	import Tabs from '#lib/components/ui/Tabs.svelte';
+	import SearchInput from '#lib/components/ui/SearchInput.svelte';
+	import StatusSummaryCard from '#lib/components/status/StatusSummaryCard.svelte';
+	import DeviceStatusRow from '#lib/components/status/DeviceStatusRow.svelte';
+	import AssignmentRow from '#lib/components/assignments/AssignmentRow.svelte';
+	import AssignmentEditor from '#lib/components/assignments/AssignmentEditor.svelte';
+	import ConfirmDialog from '#lib/components/ui/ConfirmDialog.svelte';
 	import { Stethoscope, Plus, Layers } from 'lucide-svelte';
-	import { getGraphClient } from '$lib/stores/graph';
+	import { getGraphClient } from '#lib/stores/graph';
 	import {
 		getRemediationScript,
 		getRemediationAssignments,
 		assignRemediation,
 		getRemediationDeviceStates,
 		getRemediationRunSummary
-	} from '$lib/graph/remediations';
-	import { getTargetKey } from '$lib/graph/merge';
-	import { resolveGroupNames } from '$lib/stores/group-cache';
-	import { ensureFiltersLoaded, getFilterById } from '$lib/stores/filter-cache';
-	import { toFriendlyMessage } from '$lib/graph/errors';
+	} from '#lib/graph/remediations';
+	import { getTargetKey } from '#lib/graph/merge';
+	import { resolveGroupNames } from '#lib/stores/group-cache';
+	import { ensureFiltersLoaded, getFilterById } from '#lib/stores/filter-cache';
+	import { toFriendlyMessage } from '#lib/graph/errors';
 	import type {
 		DeviceHealthScript,
 		DeviceHealthScriptAssignment,
 		DeviceHealthScriptDeviceState,
 		DeviceHealthScriptRunSummary,
 		DeviceHealthScriptDetectionState
-	} from '$lib/types/remediation';
-	import type { AssignmentTarget, AssignmentIntent } from '$lib/types/graph';
+	} from '#lib/types/remediation';
+	import type { AssignmentTarget, AssignmentIntent } from '#lib/types/graph';
 
 	let script = $state<DeviceHealthScript | null>(null);
 	let assignments = $state<DeviceHealthScriptAssignment[]>([]);

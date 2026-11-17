@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import type { GraphClient } from './client';
-import type { GraphPagedResponse } from '$lib/types/graph';
+import type { GraphPagedResponse } from '#lib/types/graph';
 import type {
 	DeviceCompliancePolicy,
 	DeviceCompliancePolicyAssignment
-} from '$lib/types/compliance';
+} from '#lib/types/compliance';
 import {
 	deviceCompliancePolicySchema,
 	deviceCompliancePolicyAssignmentSchema
-} from '$lib/types/compliance-schemas';
+} from '#lib/types/compliance-schemas';
 
 // ─── Types ──────────────────────────────────────────────────────────
 

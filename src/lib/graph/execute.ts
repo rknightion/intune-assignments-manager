@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import type { GraphClient } from '$lib/graph/client';
+import type { GraphClient } from '#lib/graph/client';
 import type {
 	AssignmentIntent,
 	BatchRequestItem,
 	ConfigurationPolicyAssignment,
 	GraphPagedResponse,
 	MobileAppAssignment
-} from '$lib/types/graph';
-import type { DeviceCompliancePolicyAssignment } from '$lib/types/compliance';
+} from '#lib/types/graph';
+import type { DeviceCompliancePolicyAssignment } from '#lib/types/compliance';
 import type {
 	AssignableItem,
 	AssignmentResult,
@@ -17,17 +17,17 @@ import type {
 	GroupTarget,
 	ProgressCallback,
 	ReplaceConfig
-} from '$lib/types/wizard';
+} from '#lib/types/wizard';
 import {
 	mergeAppAssignments,
 	mergeProfileAssignments,
 	mergeCompliancePolicyAssignments
-} from '$lib/graph/merge';
-import { getAppAssignments } from '$lib/graph/apps';
-import { getConfigAssignments } from '$lib/graph/configurations';
-import { getCompliancePolicyAssignments } from '$lib/graph/compliance';
-import { getRemediationAssignments } from '$lib/graph/remediations';
-import { getScriptAssignments } from '$lib/graph/scripts';
+} from '#lib/graph/merge';
+import { getAppAssignments } from '#lib/graph/apps';
+import { getConfigAssignments } from '#lib/graph/configurations';
+import { getCompliancePolicyAssignments } from '#lib/graph/compliance';
+import { getRemediationAssignments } from '#lib/graph/remediations';
+import { getScriptAssignments } from '#lib/graph/scripts';
 
 // ─── Constants ─────────────────────────────────────────────────────
 

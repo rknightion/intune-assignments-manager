@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { Sun, Moon, Monitor } from 'lucide-svelte';
-	import { theme, setTheme } from '$lib/stores/theme.svelte';
+	import { theme, setTheme } from '#lib/stores/theme.svelte';
 
 	const modes = [
 		{ value: 'light' as const, icon: Sun, label: 'Light' },

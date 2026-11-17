@@ -1,20 +1,20 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import Spinner from '$lib/components/ui/Spinner.svelte';
-	import Toggle from '$lib/components/ui/Toggle.svelte';
-	import { getGraphClient } from '$lib/stores/graph';
-	import { ensureFiltersLoaded } from '$lib/stores/filter-cache';
-	import { toFriendlyMessage } from '$lib/graph/errors';
+	import Badge from '#lib/components/ui/Badge.svelte';
+	import Spinner from '#lib/components/ui/Spinner.svelte';
+	import Toggle from '#lib/components/ui/Toggle.svelte';
+	import { getGraphClient } from '#lib/stores/graph';
+	import { ensureFiltersLoaded } from '#lib/stores/filter-cache';
+	import { toFriendlyMessage } from '#lib/graph/errors';
 	import type {
 		AssignmentIntent,
 		AssignmentFilter,
 		MobileApp,
 		ConfigurationPolicy
-	} from '$lib/types/graph';
-	import type { DeviceCompliancePolicy } from '$lib/types/compliance';
-	import type { ReplaceConfig } from '$lib/types/wizard';
+	} from '#lib/types/graph';
+	import type { DeviceCompliancePolicy } from '#lib/types/compliance';
+	import type { ReplaceConfig } from '#lib/types/wizard';
 	import { Info } from 'lucide-svelte';
 
 	interface FilterConfig {

@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import type { GraphClient } from './client';
-import type { GraphPagedResponse } from '$lib/types/graph';
+import type { GraphPagedResponse } from '#lib/types/graph';
 import type {
 	AutopilotDevice,
 	AutopilotDeploymentProfile,
 	AutopilotDeploymentProfileAssignment
-} from '$lib/types/autopilot';
+} from '#lib/types/autopilot';
 import {
 	autopilotDeviceSchema,
 	autopilotDeploymentProfileSchema,
 	autopilotDeploymentProfileAssignmentSchema
-} from '$lib/types/autopilot-schemas';
+} from '#lib/types/autopilot-schemas';
 
 // ─── Autopilot Device Functions ───────────────────────────────────
 

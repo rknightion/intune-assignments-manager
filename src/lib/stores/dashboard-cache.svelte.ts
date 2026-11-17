@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import type { AuditEvent } from '$lib/types/graph';
+import type { AuditEvent } from '#lib/types/graph';
 
 const CACHE_KEY = 'dashboard-cache';
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes

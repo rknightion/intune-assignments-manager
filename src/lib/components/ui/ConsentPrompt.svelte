@@ -3,12 +3,12 @@
 	import { goto } from '$app/navigation';
 	import Button from './Button.svelte';
 	import { ShieldCheck, ArrowLeft, ShieldAlert } from 'lucide-svelte';
-	import { SCOPE_DESCRIPTIONS } from '$lib/auth/permissions';
+	import { SCOPE_DESCRIPTIONS } from '#lib/auth/permissions';
 	import {
 		permissions,
 		ensurePermissions,
 		clearConsentError
-	} from '$lib/stores/permissions.svelte';
+	} from '#lib/stores/permissions.svelte';
 
 	interface Props {
 		featureName: string;

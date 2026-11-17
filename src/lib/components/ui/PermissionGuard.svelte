@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { hasAllPermissions } from '$lib/stores/permissions.svelte';
+	import { hasAllPermissions } from '#lib/stores/permissions.svelte';
 	import ConsentPrompt from './ConsentPrompt.svelte';
 
 	interface Props {

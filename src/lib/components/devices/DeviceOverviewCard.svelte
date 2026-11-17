@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import type { ManagedDevice } from '$lib/types/device';
+	import type { ManagedDevice } from '#lib/types/device';
 	import {
 		getDeviceTypeInfo,
 		getComplianceInfo,
@@ -8,8 +8,8 @@
 		getManagementAgentLabel,
 		formatStorageSize,
 		formatRelativeTime
-	} from '$lib/utils/device-types';
-	import Badge from '$lib/components/ui/Badge.svelte';
+	} from '#lib/utils/device-types';
+	import Badge from '#lib/components/ui/Badge.svelte';
 	import {
 		Shield,
 		Lock,

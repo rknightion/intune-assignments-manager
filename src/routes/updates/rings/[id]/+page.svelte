@@ -1,39 +1,39 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { page } from '$app/state';
-	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
-	import Skeleton from '$lib/components/ui/Skeleton.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import ErrorState from '$lib/components/ui/ErrorState.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import Tabs from '$lib/components/ui/Tabs.svelte';
-	import SearchInput from '$lib/components/ui/SearchInput.svelte';
-	import AssignmentRow from '$lib/components/assignments/AssignmentRow.svelte';
-	import AssignmentEditor from '$lib/components/assignments/AssignmentEditor.svelte';
-	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
-	import CsvExportButton from '$lib/components/csv/CsvExportButton.svelte';
-	import DeviceStatusRow from '$lib/components/status/DeviceStatusRow.svelte';
+	import AuthGuard from '#lib/components/ui/AuthGuard.svelte';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import ErrorState from '#lib/components/ui/ErrorState.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
+	import Tabs from '#lib/components/ui/Tabs.svelte';
+	import SearchInput from '#lib/components/ui/SearchInput.svelte';
+	import AssignmentRow from '#lib/components/assignments/AssignmentRow.svelte';
+	import AssignmentEditor from '#lib/components/assignments/AssignmentEditor.svelte';
+	import ConfirmDialog from '#lib/components/ui/ConfirmDialog.svelte';
+	import CsvExportButton from '#lib/components/csv/CsvExportButton.svelte';
+	import DeviceStatusRow from '#lib/components/status/DeviceStatusRow.svelte';
 	import { Layers, Plus, RefreshCw } from 'lucide-svelte';
-	import { getGraphClient } from '$lib/stores/graph';
+	import { getGraphClient } from '#lib/stores/graph';
 	import {
 		getUpdateRing,
 		getUpdateRingAssignments,
 		assignUpdateRing,
 		getUpdateRingDeviceStatuses
-	} from '$lib/graph/updates';
-	import { getTargetKey } from '$lib/graph/merge';
-	import { resolveGroupNames } from '$lib/stores/group-cache';
-	import { ensureFiltersLoaded, getFilterById } from '$lib/stores/filter-cache';
-	import { toFriendlyMessage } from '$lib/graph/errors';
-	import { formatDeferralPeriod } from '$lib/utils/update-types';
-	import { exportAssignmentsCsv, type ExportableAssignment } from '$lib/utils/csv-assignments';
+	} from '#lib/graph/updates';
+	import { getTargetKey } from '#lib/graph/merge';
+	import { resolveGroupNames } from '#lib/stores/group-cache';
+	import { ensureFiltersLoaded, getFilterById } from '#lib/stores/filter-cache';
+	import { toFriendlyMessage } from '#lib/graph/errors';
+	import { formatDeferralPeriod } from '#lib/utils/update-types';
+	import { exportAssignmentsCsv, type ExportableAssignment } from '#lib/utils/csv-assignments';
 	import type {
 		WindowsUpdateForBusinessConfiguration,
 		UpdateAssignment,
 		UpdateRingDeviceStatus
-	} from '$lib/types/updates';
-	import type { AssignmentTarget, AssignmentIntent } from '$lib/types/graph';
+	} from '#lib/types/updates';
+	import type { AssignmentTarget, AssignmentIntent } from '#lib/types/graph';
 
 	let ring = $state<WindowsUpdateForBusinessConfiguration | null>(null);
 	let assignments = $state<UpdateAssignment[]>([]);

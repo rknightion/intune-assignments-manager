@@ -20,13 +20,13 @@ MSAL is **not** imported at module load time. Instead, it is dynamically importe
 export async function login(): Promise<void> {
 	if (!browser) return;
 
-	const { signIn } = await import('$lib/auth/msal');
+	const { signIn } = await import('#lib/auth/msal');
 	const result = await signIn();
 	// ...
 }
 ```
 
-This is required for **SSR safety**. SvelteKit pre-renders pages on the server where browser APIs (`window`, `localStorage`, `BroadcastChannel`) are unavailable. The `browser` guard from `$app/environment` prevents any MSAL code from executing during SSR.
+This is required for **SSR safety**. SvelteKit pre-renders pages on the server where browser APIs (`window`, `localStorage`, `BroadcastChannel`) are unavailable. The `browser` guard from `$app/env` prevents any MSAL code from executing during SSR.
 
 The MSAL instance itself is lazily created via `createStandardPublicClientApplication()` and cached as a module-level singleton:
 
@@ -231,7 +231,7 @@ The auth store (`src/lib/stores/auth.svelte.ts`) is the central reactive state f
 ### Reactive state
 
 ```typescript
-import { auth } from '$lib/stores/auth.svelte';
+import { auth } from '#lib/stores/auth.svelte';
 
 // Read-only reactive properties
 auth.account; // AccountInfo | null
@@ -257,8 +257,8 @@ The root layout calls `initAuth()` on mount:
 
 ```svelte
 <script>
-	import { initAuth } from '$lib/stores/auth.svelte';
-	import { browser } from '$app/environment';
+	import { initAuth } from '#lib/stores/auth.svelte';
+	import { browser } from '$app/env';
 
 	if (browser) {
 		initAuth();
@@ -273,7 +273,7 @@ This restores any existing session from MSAL's localStorage cache without showin
 Human-readable descriptions for all scopes are available for building consent UIs:
 
 ```typescript
-import { SCOPE_DESCRIPTIONS } from '$lib/auth/permissions';
+import { SCOPE_DESCRIPTIONS } from '#lib/auth/permissions';
 
 SCOPE_DESCRIPTIONS['User.Read'];
 // "Sign in and read your profile"

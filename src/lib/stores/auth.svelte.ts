@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import type { AccountInfo } from '@azure/msal-browser';
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 
 // ─── Constants ──────────────────────────────────────────────────────
 
@@ -93,7 +93,7 @@ export async function initAuth(): Promise<void> {
 	}
 
 	try {
-		const { getOrCreateMsalInstance } = await import('$lib/auth/msal');
+		const { getOrCreateMsalInstance } = await import('#lib/auth/msal');
 		const instance = await getOrCreateMsalInstance();
 
 		const activeAccount = instance.getActiveAccount();
@@ -121,7 +121,7 @@ export async function login(): Promise<void> {
 
 	error = null;
 	try {
-		const { signIn } = await import('$lib/auth/msal');
+		const { signIn } = await import('#lib/auth/msal');
 		const result = await signIn();
 		if (result) {
 			account = result.account;
@@ -138,7 +138,7 @@ export async function logout(): Promise<void> {
 
 	error = null;
 	try {
-		const { signOut } = await import('$lib/auth/msal');
+		const { signOut } = await import('#lib/auth/msal');
 		await signOut();
 		account = null;
 		clearScopes();
@@ -155,7 +155,7 @@ export async function logout(): Promise<void> {
 export async function getToken(): Promise<string> {
 	if (!browser) throw new Error('Cannot acquire tokens during SSR');
 
-	const { getAccessToken } = await import('$lib/auth/msal');
+	const { getAccessToken } = await import('#lib/auth/msal');
 	return getAccessToken();
 }
 
@@ -166,7 +166,7 @@ export async function getToken(): Promise<string> {
 export async function getTokenWithScopes(scopes: string[]): Promise<string> {
 	if (!browser) throw new Error('Cannot acquire tokens during SSR');
 
-	const { acquireToken } = await import('$lib/auth/msal');
+	const { acquireToken } = await import('#lib/auth/msal');
 	const result = await acquireToken(scopes);
 	mergeScopes(result.scopes);
 	return result.accessToken;

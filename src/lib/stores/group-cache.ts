@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import type { GraphClient } from '$lib/graph/client';
-import { groupSchema } from '$lib/types/schemas';
+import type { GraphClient } from '#lib/graph/client';
+import { groupSchema } from '#lib/types/schemas';
 
 const cache = new Map<string, string>();
 

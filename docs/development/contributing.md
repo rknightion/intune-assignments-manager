@@ -145,7 +145,7 @@ Always use SvelteKit path aliases. Never use relative imports that cross directo
 
 ```typescript
 // Correct
-import { auth } from '$lib/stores/auth.svelte';
+import { auth } from '#lib/stores/auth.svelte';
 import { goto } from '$app/navigation';
 import { page } from '$app/stores';
 
@@ -158,7 +158,7 @@ The available aliases:
 
 | Alias   | Resolves to                                                                 |
 | ------- | --------------------------------------------------------------------------- |
-| `$lib/` | `src/lib/`                                                                  |
+| `#lib/` | `src/lib/`                                                                  |
 | `$app/` | SvelteKit runtime modules (`environment`, `navigation`, `stores`)           |
 | `$env/` | Environment variables (`static/public`, `static/private`, `dynamic/public`) |
 
@@ -169,15 +169,15 @@ New features that interact with Microsoft Graph should follow the existing patte
 1. Create a module in `src/lib/graph/` — one file per domain (e.g., `apps.ts`, `configurations.ts`, `groups.ts`)
 2. Accept a `GraphClient` as the first parameter
 3. Use Zod schemas to validate responses
-4. Throw typed errors from `$lib/graph/errors`
+4. Throw typed errors from `#lib/graph/errors`
 
 Example:
 
 ```typescript
 // src/lib/graph/widgets.ts
-import type { GraphClient } from '$lib/graph/client';
-import type { Widget } from '$lib/types/graph';
-import { widgetSchema } from '$lib/types/schemas';
+import type { GraphClient } from '#lib/graph/client';
+import type { Widget } from '#lib/types/graph';
+import { widgetSchema } from '#lib/types/schemas';
 
 export async function listWidgets(client: GraphClient): Promise<Widget[]> {
 	return client.fetchAll<Widget>('/deviceManagement/widgets');
@@ -198,9 +198,9 @@ export async function getWidget(client: GraphClient, id: string): Promise<Widget
 ```svelte
 <!-- src/routes/devices/+page.svelte -->
 <script lang="ts">
-	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
-	import PermissionGuard from '$lib/components/ui/PermissionGuard.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import AuthGuard from '#lib/components/ui/AuthGuard.svelte';
+	import PermissionGuard from '#lib/components/ui/PermissionGuard.svelte';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
 </script>
 
 <AuthGuard>

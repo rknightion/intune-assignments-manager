@@ -5,7 +5,7 @@ import type {
 	AssignmentDiff,
 	ComparisonSummary,
 	ComparisonStatus
-} from '$lib/types/compare';
+} from '#lib/types/compare';
 
 // ─── Helpers ──────────────────────────────────────────────────────────
 

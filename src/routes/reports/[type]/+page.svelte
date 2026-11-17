@@ -2,21 +2,21 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { untrack } from 'svelte';
-	import AuthGuard from '$lib/components/ui/AuthGuard.svelte';
-	import PermissionGuard from '$lib/components/ui/PermissionGuard.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import SearchInput from '$lib/components/ui/SearchInput.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Spinner from '$lib/components/ui/Spinner.svelte';
-	import ErrorState from '$lib/components/ui/ErrorState.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import ReportTable from '$lib/components/reports/ReportTable.svelte';
-	import ReportSummaryBar from '$lib/components/reports/ReportSummaryBar.svelte';
+	import AuthGuard from '#lib/components/ui/AuthGuard.svelte';
+	import PermissionGuard from '#lib/components/ui/PermissionGuard.svelte';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
+	import SearchInput from '#lib/components/ui/SearchInput.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Spinner from '#lib/components/ui/Spinner.svelte';
+	import ErrorState from '#lib/components/ui/ErrorState.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import ReportTable from '#lib/components/reports/ReportTable.svelte';
+	import ReportSummaryBar from '#lib/components/reports/ReportSummaryBar.svelte';
 	import { FileBarChart, Download, ArrowLeft, Play, FileSpreadsheet } from 'lucide-svelte';
-	import { getGraphClient } from '$lib/stores/graph';
-	import { toFriendlyMessage } from '$lib/graph/errors';
-	import { serializeCsv } from '$lib/utils/csv';
-	import { downloadCsv } from '$lib/utils/csv-download';
+	import { getGraphClient } from '#lib/stores/graph';
+	import { toFriendlyMessage } from '#lib/graph/errors';
+	import { serializeCsv } from '#lib/utils/csv';
+	import { downloadCsv } from '#lib/utils/csv-download';
 	import {
 		REPORT_CONFIGS,
 		generateAppDeploymentReport,
@@ -25,8 +25,8 @@
 		generateFailedDeploymentsReport,
 		generateAssignmentCoverageReport,
 		generateComplianceSummaryReport
-	} from '$lib/utils/reports';
-	import type { ReportType } from '$lib/types/reports';
+	} from '#lib/utils/reports';
+	import type { ReportType } from '#lib/types/reports';
 
 	// ─── Report type from URL ──────────────────────────────────────────
 	const reportType = $derived(page.params.type as ReportType);

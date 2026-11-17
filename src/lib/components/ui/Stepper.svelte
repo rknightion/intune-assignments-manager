@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-	import type { StepDefinition } from '$lib/types/wizard';
+	import type { StepDefinition } from '#lib/types/wizard';
 
 	interface Props {
 		steps: StepDefinition[];

@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { Download } from 'lucide-svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import { downloadCsv } from '$lib/utils/csv-download';
-	import { notifySuccess } from '$lib/stores/notifications.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import { downloadCsv } from '#lib/utils/csv-download';
+	import { notifySuccess } from '#lib/stores/notifications.svelte';
 
 	interface Props {
 		getCsvContent: () => Promise<string> | string;

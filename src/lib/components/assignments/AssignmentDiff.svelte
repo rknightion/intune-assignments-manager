@@ -1,9 +1,9 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 	import { SvelteSet } from 'svelte/reactivity';
-	import Badge from '$lib/components/ui/Badge.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
 	import { Plus, Minus, ArrowRight, Equal, ChevronDown, ChevronUp } from 'lucide-svelte';
-	import type { AssignmentDiffResult, DiffEntry, ItemDiff } from '$lib/types/diff';
+	import type { AssignmentDiffResult, DiffEntry, ItemDiff } from '#lib/types/diff';
 
 	interface Props {
 		diff: AssignmentDiffResult;

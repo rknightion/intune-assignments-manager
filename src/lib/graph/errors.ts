@@ -55,7 +55,7 @@ export class PermissionError extends GraphApiError {
 
 export function notifyGraphError(error: unknown): void {
 	// Lazy import to avoid circular dependency at module load time
-	import('$lib/stores/notifications.svelte').then(({ notifyError }) => {
+	import('#lib/stores/notifications.svelte').then(({ notifyError }) => {
 		const message = toFriendlyMessage(error);
 		notifyError('Graph API Error', message);
 	});
