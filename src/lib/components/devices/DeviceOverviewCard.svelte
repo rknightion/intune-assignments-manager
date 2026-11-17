@@ -96,7 +96,7 @@
 						<p class="text-muted text-[10px] font-semibold tracking-wider uppercase">
 							Serial Number
 						</p>
-						<p class="text-ink text-sm font-medium font-mono">
+						<p class="text-ink font-mono text-sm font-medium">
 							{device.serialNumber ?? 'N/A'}
 						</p>
 					</div>
@@ -112,7 +112,7 @@
 							Azure AD Device ID
 						</p>
 						<p
-							class="text-ink truncate text-sm font-medium font-mono max-w-[200px]"
+							class="text-ink max-w-[200px] truncate font-mono text-sm font-medium"
 							title={device.azureADDeviceId ?? undefined}
 						>
 							{device.azureADDeviceId ?? 'N/A'}
@@ -130,7 +130,7 @@
 							Email Address
 						</p>
 						<p
-							class="text-ink truncate text-sm font-medium max-w-[200px]"
+							class="text-ink max-w-[200px] truncate text-sm font-medium"
 							title={device.emailAddress ?? undefined}
 						>
 							{device.emailAddress ?? 'N/A'}

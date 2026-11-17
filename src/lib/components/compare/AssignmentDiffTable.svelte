@@ -59,12 +59,12 @@
 		<table class="w-full text-left">
 			<thead>
 				<tr class="border-border border-b">
-					<th class="text-muted px-4 py-2.5 text-xs font-medium uppercase tracking-wider">Target</th
+					<th class="text-muted px-4 py-2.5 text-xs font-medium tracking-wider uppercase">Target</th
 					>
-					<th class="text-muted px-4 py-2.5 text-xs font-medium uppercase tracking-wider"
+					<th class="text-muted px-4 py-2.5 text-xs font-medium tracking-wider uppercase"
 						>Left Policy</th
 					>
-					<th class="text-muted px-4 py-2.5 text-xs font-medium uppercase tracking-wider"
+					<th class="text-muted px-4 py-2.5 text-xs font-medium tracking-wider uppercase"
 						>Right Policy</th
 					>
 				</tr>
@@ -76,7 +76,7 @@
 						<td class="px-4 py-3 text-sm">
 							<div class="flex items-center gap-2">
 								<span
-									class="inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider {style.label}"
+									class="inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase {style.label}"
 								>
 									{style.labelText}
 								</span>

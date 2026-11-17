@@ -50,7 +50,7 @@
 </script>
 
 <div class="relative" bind:this={containerEl}>
-	<span class="text-ink-faint mb-1 block text-xs font-medium uppercase tracking-wide">
+	<span class="text-ink-faint mb-1 block text-xs font-medium tracking-wide uppercase">
 		{label}
 	</span>
 	<button

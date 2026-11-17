@@ -183,7 +183,7 @@
 								>
 									<div class="text-muted col-span-6 sm:col-span-7">App Name</div>
 									<div class="text-muted col-span-3 sm:col-span-3">Version</div>
-									<div class="text-muted col-span-3 sm:col-span-2 text-right">Size</div>
+									<div class="text-muted col-span-3 text-right sm:col-span-2">Size</div>
 								</div>
 							</div>
 
@@ -191,17 +191,17 @@
 								<div
 									class="border-border grid grid-cols-12 items-center gap-2 border-b px-4 py-2.5"
 								>
-									<div class="col-span-6 sm:col-span-7 min-w-0">
+									<div class="col-span-6 min-w-0 sm:col-span-7">
 										<p class="text-ink truncate text-sm">
 											{app.displayName ?? 'Unknown App'}
 										</p>
 									</div>
 									<div class="col-span-3 sm:col-span-3">
-										<span class="text-ink-faint text-sm font-mono">
+										<span class="text-ink-faint font-mono text-sm">
 											{app.version ?? '—'}
 										</span>
 									</div>
-									<div class="col-span-3 sm:col-span-2 text-right">
+									<div class="col-span-3 text-right sm:col-span-2">
 										<span class="text-ink-faint text-sm">
 											{app.sizeInByte > 0 ? formatStorageSize(app.sizeInByte) : '—'}
 										</span>

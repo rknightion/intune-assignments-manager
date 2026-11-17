@@ -52,11 +52,11 @@
 			class="border-border bg-surface/95 sticky top-12 z-10 grid grid-cols-12 gap-2 border-b px-4 py-2 text-[10px] font-semibold tracking-wider uppercase"
 		>
 			<div class="text-muted col-span-6 sm:col-span-5">Policy Name</div>
-			<div class="text-muted col-span-3 sm:col-span-3 text-center">Status</div>
+			<div class="text-muted col-span-3 text-center sm:col-span-3">Status</div>
 			{#if type === 'configuration'}
 				<div class="text-muted col-span-2 hidden sm:block">Platform</div>
 			{/if}
-			<div class="text-muted col-span-3 sm:col-span-2 text-right">Settings</div>
+			<div class="text-muted col-span-3 text-right sm:col-span-2">Settings</div>
 		</div>
 
 		{#each policies as policy, i (getPolicyId(policy, i))}
@@ -73,7 +73,7 @@
 				onclick={() => hasSettings && toggleExpanded(policyId)}
 				disabled={!hasSettings}
 			>
-				<div class="col-span-6 sm:col-span-5 flex items-center gap-2 min-w-0">
+				<div class="col-span-6 flex min-w-0 items-center gap-2 sm:col-span-5">
 					{#if hasSettings}
 						<ChevronRight
 							size={14}
@@ -86,7 +86,7 @@
 						{policy.displayName ?? 'Unknown Policy'}
 					</span>
 				</div>
-				<div class="col-span-3 sm:col-span-3 flex justify-center">
+				<div class="col-span-3 flex justify-center sm:col-span-3">
 					<Badge variant={stateInfo.variant} dot>
 						{stateInfo.label}
 					</Badge>
@@ -98,7 +98,7 @@
 						{/if}
 					</div>
 				{/if}
-				<div class="text-ink-faint col-span-3 sm:col-span-2 text-right text-sm">
+				<div class="text-ink-faint col-span-3 text-right text-sm sm:col-span-2">
 					{policy.settingCount}
 				</div>
 			</button>

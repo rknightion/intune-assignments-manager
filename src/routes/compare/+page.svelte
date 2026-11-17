@@ -316,7 +316,7 @@
 			<!-- Policy Type Selector -->
 			<div class="mb-4">
 				<label
-					class="text-ink-faint mb-1.5 block text-xs font-medium uppercase tracking-wide"
+					class="text-ink-faint mb-1.5 block text-xs font-medium tracking-wide uppercase"
 					for="policy-type"
 				>
 					Policy Type
@@ -429,17 +429,17 @@
 									<thead>
 										<tr class="border-border border-b">
 											<th
-												class="text-muted px-4 py-2.5 text-xs font-medium uppercase tracking-wider"
+												class="text-muted px-4 py-2.5 text-xs font-medium tracking-wider uppercase"
 											>
 												Setting
 											</th>
 											<th
-												class="text-muted px-4 py-2.5 text-xs font-medium uppercase tracking-wider"
+												class="text-muted px-4 py-2.5 text-xs font-medium tracking-wider uppercase"
 											>
 												{result.leftPolicy.displayName}
 											</th>
 											<th
-												class="text-muted px-4 py-2.5 text-xs font-medium uppercase tracking-wider"
+												class="text-muted px-4 py-2.5 text-xs font-medium tracking-wider uppercase"
 											>
 												{result.rightPolicy.displayName}
 											</th>
