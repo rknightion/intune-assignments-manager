@@ -45,7 +45,7 @@
 						<th
 							class="text-ink-faint px-4 py-2.5 text-xs font-medium tracking-wider uppercase
 								{col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}
-								{col.sortable ? 'cursor-pointer select-none hover:text-ink transition-colors' : ''}"
+								{col.sortable ? 'hover:text-ink cursor-pointer transition-colors select-none' : ''}"
 							onclick={() => col.sortable && onsort(col.key)}
 						>
 							<span class="inline-flex items-center gap-1">

@@ -220,7 +220,7 @@
 			{#if action === 'wipe'}
 				<label class="mb-3 flex cursor-pointer items-start gap-2">
 					<input type="checkbox" bind:checked={wipeAcknowledged} class="accent-ember mt-0.5" />
-					<span class="text-sm text-ink">
+					<span class="text-ink text-sm">
 						I understand this will factory reset {devices.length} device{devices.length !== 1
 							? 's'
 							: ''}

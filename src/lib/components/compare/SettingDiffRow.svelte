@@ -50,7 +50,7 @@
 	<td class="px-4 py-3 text-sm">
 		<div class="flex items-center gap-2">
 			<span
-				class="inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider {style.label}"
+				class="inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase {style.label}"
 			>
 				{style.labelText}
 			</span>
@@ -63,7 +63,7 @@
 	<td class="px-4 py-3 text-sm">
 		{#if diff.leftValue !== null && diff.leftValue !== undefined}
 			<pre
-				class="text-ink-light max-w-xs overflow-auto whitespace-pre-wrap break-all font-mono text-xs">{formatValue(
+				class="text-ink-light max-w-xs overflow-auto font-mono text-xs break-all whitespace-pre-wrap">{formatValue(
 					diff.leftValue
 				)}</pre>
 		{:else}
@@ -73,7 +73,7 @@
 	<td class="px-4 py-3 text-sm">
 		{#if diff.rightValue !== null && diff.rightValue !== undefined}
 			<pre
-				class="text-ink-light max-w-xs overflow-auto whitespace-pre-wrap break-all font-mono text-xs">{formatValue(
+				class="text-ink-light max-w-xs overflow-auto font-mono text-xs break-all whitespace-pre-wrap">{formatValue(
 					diff.rightValue
 				)}</pre>
 		{:else}

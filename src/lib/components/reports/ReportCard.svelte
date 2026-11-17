@@ -31,7 +31,7 @@
 
 <a
 	href="/reports/{config.type}"
-	class="panel group flex flex-col gap-3 p-5 transition-all hover:shadow-md hover:border-accent/30"
+	class="panel group hover:border-accent/30 flex flex-col gap-3 p-5 transition-all hover:shadow-md"
 >
 	<div class="flex items-start justify-between">
 		<div class="bg-accent-light flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
@@ -39,7 +39,7 @@
 		</div>
 		<ChevronRight
 			size={16}
-			class="text-muted opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-0.5"
+			class="text-muted opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100"
 		/>
 	</div>
 	<div>
