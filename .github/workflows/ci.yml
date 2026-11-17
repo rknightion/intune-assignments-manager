@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
     # `edited` re-runs CI when the pull request body changes, so the acceptance evidence check reads
-    # the new table. Every job runs on it: a job skipped by `if:` would report success to ci-success.
+    # the new table.
     types: [opened, edited, reopened, synchronize, ready_for_review]
 
 permissions:
@@ -26,8 +26,8 @@ env:
   PUBLIC_ENTRA_CLIENT_ID: 00000000-0000-0000-0000-000000000000
 
 jobs:
-  lint:
-    name: eslint / prettier
+  validate:
+    name: Validate and build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -48,70 +48,24 @@ jobs:
           just-version: '1.58.0'
 
       - name: Install
+        id: install
         run: pnpm install --frozen-lockfile
 
-      - name: lint + fmt-check
-        run: just lint fmt-check
+      - name: Lint
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: just lint
 
-  check:
-    name: svelte-check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
+      - name: Check formatting
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: just fmt-check
 
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-        with:
-          version: 12
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
-        with:
-          just-version: '1.58.0'
-
-      - name: Install
-        run: pnpm install --frozen-lockfile
-
-      # This is the job that actually type-checks. `pnpm build` does NOT - Vite
-      # strips types without checking them, which is how 6 type errors and 86 lint
-      # errors sat unnoticed behind a green build while TypeScript 7 had both tools
-      # crashing. See the TypeScript pin in renovate.json.
-      - name: svelte-check
+      # Vite strips types during build. Run Svelte and TypeScript checks explicitly.
+      - name: Type check
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: just typecheck
 
-  build:
-    name: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-        with:
-          version: 12
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
-        with:
-          just-version: '1.58.0'
-
-      - name: Install
-        run: pnpm install --frozen-lockfile
-
-      # PUBLIC_ENTRA_CLIENT_ID comes from the workflow-level env above -
-      # $env/static/public resolves at build time and Rollup fails outright
-      # without it.
       - name: Build
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: just build
 
   # A pull request that closes an issue shows evidence for each of its acceptance criteria. Checks
@@ -189,12 +143,16 @@ jobs:
     name: ci-success
     runs-on: ubuntu-latest
     if: always()
-    needs: [lint, check, build, ac-evidence, privacy-sweep, backlog-freeze, zizmor]
+    needs: [validate, ac-evidence, privacy-sweep, backlog-freeze, zizmor]
     steps:
       - name: Fail if any required job did not pass
-        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        if: >-
+          ${{
+            needs.validate.result != 'success' || needs.zizmor.result != 'success'
+            || contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+          }}
         run: |
-          echo "A required job failed or was cancelled: ${{ join(needs.*.result, ', ') }}"
+          echo "A required job did not pass: ${{ join(needs.*.result, ', ') }}"
           exit 1
       # A skipped job reports success, so on a pull request the pull request checks must have
       # actually run and passed.
@@ -204,10 +162,9 @@ jobs:
           AC_EVIDENCE: ${{ needs.ac-evidence.result }}
           PRIVACY_SWEEP: ${{ needs.privacy-sweep.result }}
           BACKLOG_FREEZE: ${{ needs.backlog-freeze.result }}
-          ZIZMOR: ${{ needs.zizmor.result }}
         run: |
-          if [[ "$AC_EVIDENCE" != "success" || "$PRIVACY_SWEEP" != "success" || "$BACKLOG_FREEZE" != "success" || "$ZIZMOR" != "success" ]]; then
-            echo "ac-evidence: ${AC_EVIDENCE}, privacy-sweep: ${PRIVACY_SWEEP}, backlog-freeze: ${BACKLOG_FREEZE}, zizmor: ${ZIZMOR}; all must pass on a pull request"
+          if [[ "$AC_EVIDENCE" != "success" || "$PRIVACY_SWEEP" != "success" || "$BACKLOG_FREEZE" != "success" ]]; then
+            echo "ac-evidence: ${AC_EVIDENCE}, privacy-sweep: ${PRIVACY_SWEEP}, backlog-freeze: ${BACKLOG_FREEZE}; all must pass on a pull request"
             exit 1
           fi
       - name: All required jobs passed
