@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 # CLOUD AGENTS ONLY: Local agents must not execute this script.
-# Manual environment setup for Codex Cloud and Claude Code cloud environments.
-# Configure either service's setup script as: bash scripts/cloud-environment-setup.sh
+# Dependency setup for cloud agents. Codex Cloud and Claude Code can run this
+# script directly. Cursor Cloud runs it through `just cloud-bootstrap`.
 
 set -Eeuo pipefail
 
-readonly PNPM_VERSION='10.28.1'
+readonly PNPM_VERSION='12.21.0'
+readonly PNPM_PREFIX="$HOME/.local"
+export PATH="$PNPM_PREFIX/bin:$PATH"
+export npm_config_registry=https://registry.npmjs.org
 
 log() {
 	printf '\n[cloud-setup] %s\n' "$*"
 }
 
 find_repo_root() {
-	local script_dir
+	local script_dir git_root
 	script_dir="$(dirname -- "${BASH_SOURCE[0]}")"
 
 	if git_root="$(git -C "$script_dir" rev-parse --show-toplevel 2>/dev/null)"; then
@@ -26,16 +29,15 @@ find_repo_root() {
 }
 
 install_pnpm() {
-	if command -v corepack >/dev/null 2>&1; then
-		corepack enable
-		corepack prepare "pnpm@${PNPM_VERSION}" --activate
-	else
-		npm install --global "pnpm@${PNPM_VERSION}"
+	local pnpm_bin="$PNPM_PREFIX/bin/pnpm"
+	if [[ ! -x "$pnpm_bin" ]] || [[ "$("$pnpm_bin" --version)" != "$PNPM_VERSION" ]]; then
+		npm install --global --prefix "$PNPM_PREFIX" --ignore-scripts --no-audit --no-fund "pnpm@$PNPM_VERSION"
 	fi
 }
 
 log 'Locating the repository checkout'
-readonly REPO_ROOT="$(find_repo_root)"
+REPO_ROOT="$(find_repo_root)"
+readonly REPO_ROOT
 cd -- "$REPO_ROOT"
 printf 'Repository: %s\n' "$REPO_ROOT"
 
@@ -52,7 +54,7 @@ log "Activating pnpm ${PNPM_VERSION}"
 install_pnpm
 
 log 'Installing project dependencies from pnpm-lock.yaml'
-pnpm install --frozen-lockfile
+CI=true pnpm install --frozen-lockfile </dev/null
 
 log 'Verifying the cloud task toolchain'
 printf 'Node.js:    %s\n' "$(node --version)"

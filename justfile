@@ -4,7 +4,8 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 # type-check/build time. The real value is per-deployment Cloudflare Pages
 # config; this app is client-side only with no server secrets. Override with a
 # real value via `.env` (loaded by Vite) for `just dev`.
-export PUBLIC_ENTRA_CLIENT_ID := env('PUBLIC_ENTRA_CLIENT_ID', '00000000-0000-0000-0000-000000000000')
+placeholder_entra_client_id := '00000000-0000-0000-0000-000000000000'
+export PUBLIC_ENTRA_CLIENT_ID := env('PUBLIC_ENTRA_CLIENT_ID', placeholder_entra_client_id)
 
 # show the task surface
 default:
@@ -14,6 +15,21 @@ default:
 setup:
     pnpm install --frozen-lockfile
     pnpm exec svelte-kit sync
+
+# prepare the Cursor Cloud workspace and warm the production build
+cloud-bootstrap:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    export PATH="$HOME/.local/bin:$PATH"
+    export PUBLIC_ENTRA_CLIENT_ID={{ placeholder_entra_client_id }}
+    export CLOUDFLARE_CF_FETCH_ENABLED=false
+    bash scripts/cloud-environment-setup.sh
+    just build
+
+# serve the signed-out app on the Cursor Cloud forwarded port
+cloud-preview:
+    PUBLIC_ENTRA_CLIENT_ID={{ placeholder_entra_client_id }} CLOUDFLARE_CF_FETCH_ENABLED=false \
+        PATH="$HOME/.local/bin:$PATH" pnpm exec vite dev --host 0.0.0.0 --port 5173 --strictPort
 
 # format source in place (prettier)
 [group('check')]
