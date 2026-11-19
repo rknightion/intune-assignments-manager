@@ -128,3 +128,13 @@ file beside them.
 
 - `docs/development/graph-endpoint-findings.md` - read before probing a Graph endpoint, and add to it
   when you verify one.
+
+## Cursor Cloud specific instructions
+
+`.cursor/environment.json` runs `just cloud-bootstrap` to prepare the locked dependencies and
+production build. Its Vite terminal serves the signed-out dashboard through forwarded port 5173.
+Live Entra sign-in and Microsoft Graph checks need a separately configured tenant.
+
+In a fresh shell, put the prepared pnpm on the path with `export PATH="$HOME/.local/bin:$PATH"`.
+Run `just typecheck </dev/null` for the fast check and
+`just check </dev/null && just build </dev/null` for the full gate.
