@@ -556,9 +556,9 @@
 
 				<div class="flex items-center gap-3">
 					{#if totalSelected > 0 && currentStepIndex === 0}
-						<span class="text-muted text-xs"
-							>{totalSelected} item{totalSelected !== 1 ? 's' : ''} selected</span
-						>
+						<span class="text-muted text-xs">
+							{totalSelected} item{totalSelected !== 1 ? 's' : ''} selected
+						</span>
 					{/if}
 					<Button
 						variant="primary"
