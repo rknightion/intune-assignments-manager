@@ -145,9 +145,9 @@
 									{getIntentLabel(entry.newIntent)}
 								</Badge>
 								{#if entry.newFilterName}
-									<span class="text-muted text-xs"
-										>{entry.newFilterName} ({entry.newFilterMode})</span
-									>
+									<span class="text-muted text-xs">
+										{entry.newFilterName} ({entry.newFilterMode})
+									</span>
 								{/if}
 							</div>
 						{:else if entry.status === 'changed'}
@@ -168,9 +168,9 @@
 							</div>
 						{:else if entry.status === 'removed'}
 							<div class="mt-0.5 flex items-center gap-2">
-								<span class="text-muted text-xs line-through"
-									>{getIntentLabel(entry.currentIntent)}</span
-								>
+								<span class="text-muted text-xs line-through">
+									{getIntentLabel(entry.currentIntent)}
+								</span>
 							</div>
 						{/if}
 					</div>
@@ -212,9 +212,9 @@
 										{getIntentLabel(entry.currentIntent)}
 									</Badge>
 									{#if entry.currentFilterName}
-										<span class="text-muted text-xs"
-											>{entry.currentFilterName} ({entry.currentFilterMode})</span
-										>
+										<span class="text-muted text-xs">
+											{entry.currentFilterName} ({entry.currentFilterMode})
+										</span>
 									{/if}
 								</div>
 							</div>
@@ -244,9 +244,9 @@
 									{getIntentLabel(entry.currentIntent)}
 								</Badge>
 								{#if entry.currentFilterName}
-									<span class="text-muted text-xs"
-										>{entry.currentFilterName} ({entry.currentFilterMode})</span
-									>
+									<span class="text-muted text-xs">
+										{entry.currentFilterName} ({entry.currentFilterMode})
+									</span>
 								{/if}
 							</div>
 						</div>

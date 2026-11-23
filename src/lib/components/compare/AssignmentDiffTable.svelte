@@ -59,14 +59,15 @@
 		<table class="w-full text-left">
 			<thead>
 				<tr class="border-border border-b">
-					<th class="text-muted px-4 py-2.5 text-xs font-medium tracking-wider uppercase">Target</th
-					>
-					<th class="text-muted px-4 py-2.5 text-xs font-medium tracking-wider uppercase"
-						>Left Policy</th
-					>
-					<th class="text-muted px-4 py-2.5 text-xs font-medium tracking-wider uppercase"
-						>Right Policy</th
-					>
+					<th class="text-muted px-4 py-2.5 text-xs font-medium tracking-wider uppercase">
+						Target
+					</th>
+					<th class="text-muted px-4 py-2.5 text-xs font-medium tracking-wider uppercase">
+						Left Policy
+					</th>
+					<th class="text-muted px-4 py-2.5 text-xs font-medium tracking-wider uppercase">
+						Right Policy
+					</th>
 				</tr>
 			</thead>
 			<tbody>
