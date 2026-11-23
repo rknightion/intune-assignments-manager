@@ -341,21 +341,21 @@
 						>
 							<div class="grid gap-3 text-sm sm:grid-cols-2">
 								<div>
-									<span class="text-muted text-xs font-medium tracking-wide uppercase"
-										>Activity</span
-									>
+									<span class="text-muted text-xs font-medium tracking-wide uppercase">
+										Activity
+									</span>
 									<p class="text-ink">{evt.activity ?? '-'}</p>
 								</div>
 								<div>
-									<span class="text-muted text-xs font-medium tracking-wide uppercase"
-										>Timestamp</span
-									>
+									<span class="text-muted text-xs font-medium tracking-wide uppercase">
+										Timestamp
+									</span>
 									<p class="text-ink">{formatDateTime(evt.activityDateTime)}</p>
 								</div>
 								<div>
-									<span class="text-muted text-xs font-medium tracking-wide uppercase"
-										>Component</span
-									>
+									<span class="text-muted text-xs font-medium tracking-wide uppercase">
+										Component
+									</span>
 									<p class="text-ink">{evt.componentName ?? '-'}</p>
 								</div>
 								<div>
@@ -363,21 +363,21 @@
 									<p class="text-ink">{evt.actor.userPrincipalName ?? '-'}</p>
 								</div>
 								<div>
-									<span class="text-muted text-xs font-medium tracking-wide uppercase"
-										>Category</span
-									>
+									<span class="text-muted text-xs font-medium tracking-wide uppercase">
+										Category
+									</span>
 									<p class="text-ink">{evt.category}</p>
 								</div>
 								<div>
-									<span class="text-muted text-xs font-medium tracking-wide uppercase"
-										>Operation</span
-									>
+									<span class="text-muted text-xs font-medium tracking-wide uppercase">
+										Operation
+									</span>
 									<p class="text-ink">{evt.activityOperationType}</p>
 								</div>
 								<div>
-									<span class="text-muted text-xs font-medium tracking-wide uppercase"
-										>Correlation ID</span
-									>
+									<span class="text-muted text-xs font-medium tracking-wide uppercase">
+										Correlation ID
+									</span>
 									<p class="text-ink font-mono text-xs">{evt.correlationId}</p>
 								</div>
 								<div>
@@ -389,9 +389,9 @@
 							<!-- Resources -->
 							{#if evt.resources.length > 0}
 								<div class="mt-4">
-									<span class="text-muted text-xs font-medium tracking-wide uppercase"
-										>Resources</span
-									>
+									<span class="text-muted text-xs font-medium tracking-wide uppercase">
+										Resources
+									</span>
 									{#each evt.resources as resource, i (resource.resourceId ?? i)}
 										<div class="panel-inset mt-2">
 											<p class="text-ink text-sm font-medium">
@@ -408,17 +408,17 @@
 																{#if prop.oldValue}
 																	<div>
 																		<span class="text-ember font-medium">Old:</span>
-																		<span class="text-muted ml-1 font-mono break-all"
-																			>{prop.oldValue}</span
-																		>
+																		<span class="text-muted ml-1 font-mono break-all">
+																			{prop.oldValue}
+																		</span>
 																	</div>
 																{/if}
 																{#if prop.newValue}
 																	<div>
 																		<span class="text-success font-medium">New:</span>
-																		<span class="text-muted ml-1 font-mono break-all"
-																			>{prop.newValue}</span
-																		>
+																		<span class="text-muted ml-1 font-mono break-all">
+																			{prop.newValue}
+																		</span>
 																	</div>
 																{/if}
 															</div>

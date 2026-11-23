@@ -1174,8 +1174,9 @@
 								{#if script.isGlobalScript}
 									<span
 										class="bg-accent-light text-accent ml-1 rounded px-1.5 py-0.5 text-[10px] font-medium"
-										>Global</span
 									>
+										Global
+									</span>
 								{/if}
 							</p>
 						</div>
