@@ -20,6 +20,7 @@ jobs:
     # for 24h and was auto-cancelled -- docs from this repo have never actually
     # published. The repo is public, so hosted runners cost nothing.
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
       id-token: write # exchanged for a tailnet identity and an OpenBao token
